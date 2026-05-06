@@ -467,6 +467,23 @@ export default function CampaignBriefBuilder() {
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </a>
+
+            {/* Admin Panel Link (Conditional) */}
+            {session?.user?.email && (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').includes(session.user.email) && (
+              <a 
+                href="/admin"
+                className="group flex items-center gap-3 w-full p-3 bg-[#BEFF00]/5 hover:bg-[#BEFF00]/10 rounded-xl transition-all border border-[#BEFF00]/10 hover:border-[#BEFF00]/30 mt-4 shadow-lg shadow-[#BEFF00]/5"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#BEFF00] text-black flex items-center justify-center font-black text-xs shadow-inner">
+                  ADM
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-bold text-[#BEFF00]">Admin Panel</div>
+                  <div className="text-[10px] text-[#BEFF00]/60 mt-0.5">Stats & Cost Tracking</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#BEFF00] group-hover:translate-x-1 transition-all"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </a>
+            )}
          </div>
       </div>
 

@@ -3,14 +3,12 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Admin check - replace with your actual admin emails
-const ADMIN_EMAILS = ['amansingh@growven.ai', 'onlyaff@growven.ai'];
-
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
 
-    if (!session?.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
+    if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
