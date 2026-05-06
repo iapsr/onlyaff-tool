@@ -152,7 +152,7 @@ export default function CampaignBriefBuilder() {
       };
       fetchTeamsContacts();
     }
-  }, [session, isShareModalOpen, contacts.length]);
+  }, [session, isShareModalOpen]);
 
   const saveToHistory = (input: string, data: ParsedData, formattedText: string) => {
     const newItem: CampaignHistoryItem = {
