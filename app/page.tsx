@@ -385,7 +385,7 @@ export default function CampaignBriefBuilder() {
       <div className="absolute top-[30%] left-[50%] w-[30%] h-[30%] rounded-full bg-[#BEFF00]/5 blur-[100px] pointer-events-none" />
 
       {/* Dynamic Sidebar (Glass) */}
-      <div className={`${isSidebarOpen ? 'w-[280px]' : 'w-0'} shrink-0 bg-[#111111]/80 backdrop-blur-3xl border-r border-[#BEFF00]/10 flex flex-col transition-all duration-300 overflow-hidden z-20 shadow-2xl`}>
+      <div className={`fixed lg:relative ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:translate-x-0'} w-[280px] h-full bg-[#111111]/95 lg:bg-[#111111]/80 backdrop-blur-3xl border-r border-[#BEFF00]/10 flex flex-col transition-all duration-300 overflow-hidden z-30 shadow-2xl`}>
          <div className="p-5 border-b border-white/5 flex items-center gap-3 shrink-0 h-[72px]">
             <div className="w-8 h-8 bg-[#BEFF00] text-black rounded-lg flex items-center justify-center font-black text-lg shadow-lg shadow-[#BEFF00]/20 shrink-0 border border-[#BEFF00]/40">
               o
@@ -483,7 +483,7 @@ export default function CampaignBriefBuilder() {
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <div className="text-sm text-gray-200 font-semibold tracking-wide">
+            <div className="text-sm text-gray-200 font-semibold tracking-wide hidden sm:block">
               Campaign Brief Formatter
             </div>
           </div>
@@ -519,7 +519,7 @@ export default function CampaignBriefBuilder() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Powered By</span>
                <span className="text-sm font-black text-[#BEFF00] tracking-wide">Growven</span>
             </div>
@@ -527,7 +527,15 @@ export default function CampaignBriefBuilder() {
         </header>
 
         {/* Main Grid: 60% Left, 40% Right */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-10 overflow-hidden w-full max-w-[1600px] mx-auto p-4 lg:p-8 gap-6 lg:gap-8 relative">
+        <div className="flex-1 flex flex-col lg:grid lg:grid-cols-10 overflow-y-auto lg:overflow-hidden w-full max-w-[1600px] mx-auto p-4 lg:p-8 gap-6 lg:gap-8 relative custom-scrollbar">
+          
+          {/* Mobile Overlay for Sidebar */}
+          {isSidebarOpen && (
+            <div 
+              className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
           
           {/* Left 60%: Input Area (Glass) */}
           <div className="lg:col-span-6 flex flex-col h-full overflow-hidden bg-[#161616]/60 backdrop-blur-2xl border border-white/5 rounded-3xl shadow-2xl focus-within:border-[#BEFF00]/40 focus-within:bg-[#161616]/80 transition-all duration-300">
