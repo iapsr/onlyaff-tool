@@ -56,10 +56,10 @@ export default function AdminDashboard() {
           This area is restricted to administrators only. Please sign in with an authorized account.
         </p>
         <button 
-          onClick={() => signIn('azure-ad')}
+          onClick={() => signIn()}
           className="bg-[#BEFF00] text-black px-8 py-3 rounded-xl font-bold hover:bg-[#a5e000] transition-all"
         >
-          Admin Login
+          Sign In to Access
         </button>
       </div>
     );
