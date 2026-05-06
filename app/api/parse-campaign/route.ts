@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
@@ -8,7 +9,47 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const { text } = await request.json();
+
+    // Check usage for LinkedIn users
+    if (session?.user?.email && (session as any).user.provider === "linkedin") {
+      const today = new Date().toISOString().split("T")[0];
+      const usage = await prisma.usage.findUnique({
+        where: {
+          email_date: {
+            email: session.user.email,
+            date: today,
+          },
+        },
+      });
+
+      if (usage && usage.count >= 3) {
+        return NextResponse.json(
+          {
+            error: "Daily limit reached",
+            details: "LinkedIn users are limited to 3 campaign briefs per day. Please upgrade or try again tomorrow.",
+          },
+          { status: 429 }
+        );
+      }
+
+      // Update usage
+      await prisma.usage.upsert({
+        where: {
+          email_date: {
+            email: session.user.email,
+            date: today,
+          },
+        },
+        update: { count: { increment: 1 } },
+        create: {
+          email: session.user.email,
+          date: today,
+          count: 1,
+        },
+      });
+    }
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });

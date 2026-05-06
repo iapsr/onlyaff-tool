@@ -107,6 +107,24 @@ export default function CampaignBriefBuilder() {
 
   const [history, setHistory] = useState<CampaignHistoryItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [usage, setUsage] = useState({ count: 0, limit: 3 });
+
+  // Fetch usage on mount and after generation
+  const fetchUsage = async () => {
+    if (session && (session.user as any).provider === 'linkedin') {
+      try {
+        const res = await fetch('/api/usage');
+        const data = await res.json();
+        setUsage(data);
+      } catch (e) {
+        console.error("Failed to fetch usage", e);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUsage();
+  }, [session]);
 
   // Teams Hub Modal State
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -208,6 +226,7 @@ export default function CampaignBriefBuilder() {
       const formatted = generateFormattedText(data);
       setFormattedOutput(formatted);
       saveToHistory(inputText, data, formatted);
+      fetchUsage(); // Refresh usage after success
     } catch (error: any) {
       console.error('Error generating brief:', error);
       alert(`Error: ${error.message}`);
@@ -468,9 +487,42 @@ export default function CampaignBriefBuilder() {
               Campaign Brief Formatter
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Powered By</span>
-             <span className="text-sm font-black text-[#BEFF00] tracking-wide">Growven</span>
+          <div className="flex items-center gap-4">
+            {session && (session.user as any).provider === 'linkedin' && (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">LinkedIn Quota:</span>
+                <span className="text-sm font-bold text-white">{usage.count} / {usage.limit}</span>
+              </div>
+            )}
+
+            {!session ? (
+              <button 
+                onClick={() => signIn('linkedin')}
+                className="flex items-center gap-2 text-xs font-bold text-white bg-[#0077b5] hover:bg-[#006097] px-4 py-2 rounded-lg transition-all shadow-lg shadow-[#0077b5]/20"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                Sign in with LinkedIn
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active User</span>
+                  <span className="text-xs font-bold text-white truncate max-w-[120px]">{session.user?.name || session.user?.email}</span>
+                </div>
+                <button 
+                  onClick={() => signOut()}
+                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                  title="Sign Out"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+               <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Powered By</span>
+               <span className="text-sm font-black text-[#BEFF00] tracking-wide">Growven</span>
+            </div>
           </div>
         </header>
 
