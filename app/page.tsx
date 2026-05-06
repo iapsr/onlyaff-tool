@@ -274,10 +274,9 @@ export default function CampaignBriefBuilder() {
   };
 
   const shareViaTeamsAPI = async (contact: TeamsContact) => {
-    if (!session) {
-      signIn("azure-ad");
-      return;
-    }
+    // Azure AD removed, fallback to deep link
+    shareViaTeamsDeepLink(contact);
+  };
     setSendingTeamsIds(prev => new Set(prev).add(contact.id));
     try {
       const response = await fetch('/api/teams/send', {
@@ -513,13 +512,20 @@ export default function CampaignBriefBuilder() {
             )}
 
             {!session ? (
-              <button 
-                onClick={() => signIn('linkedin')}
-                className="flex items-center gap-2 text-xs font-bold text-white bg-[#0077b5] hover:bg-[#006097] px-4 py-2 rounded-lg transition-all shadow-lg shadow-[#0077b5]/20"
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                Sign in with LinkedIn
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => signIn('linkedin')}
+                  className="flex items-center gap-2 text-xs font-bold text-white bg-[#0077b5] hover:bg-[#006097] px-4 py-2 rounded-lg transition-all shadow-lg shadow-[#0077b5]/20"
+                >
+                  LinkedIn
+                </button>
+                <button 
+                  onClick={() => signIn('google')}
+                  className="flex items-center gap-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg transition-all shadow-lg border border-gray-200"
+                >
+                  Google
+                </button>
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end">
