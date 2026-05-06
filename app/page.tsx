@@ -273,89 +273,20 @@ export default function CampaignBriefBuilder() {
     window.open(`https://teams.microsoft.com/l/chat/0/0?users=${contact.teams}&message=${message}`);
   };
 
-  const shareViaTeamsAPI = async (contact: TeamsContact) => {
+  const shareViaTeamsAPI = (contact: TeamsContact) => {
     // Azure AD removed, fallback to deep link
     shareViaTeamsDeepLink(contact);
   };
-    setSendingTeamsIds(prev => new Set(prev).add(contact.id));
-    try {
-      const response = await fetch('/api/teams/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: contact.teams,
-          message: getPopulatedMessage(contact.name)
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.details || data.error);
-      
-      alert(`Message successfully sent to ${contact.name} via Teams API!`);
-    } catch (error: any) {
-      console.error(error);
-      if (confirm(`Failed to send silently: ${error.message}\n\nDo you want to open the deep link instead?`)) {
-        shareViaTeamsDeepLink(contact);
-      }
-    } finally {
-      setSendingTeamsIds(prev => {
-        const next = new Set(prev);
-        next.delete(contact.id);
-        return next;
-      });
-    }
-  };
 
-  const bulkSendTeamsAPI = async () => {
-    if (!session) {
-      signIn("azure-ad");
-      return;
-    }
-
+  const bulkSendTeamsDeepLink = () => {
     const targets = contacts.filter(c => selectedPubIds.has(c.id) && c.teams);
     if (targets.length === 0) {
        alert("No contacts selected.");
        return;
     }
-
-    if (!confirm(`Are you sure you want to silently broadcast this campaign to ${targets.length} teammates via Microsoft Teams?`)) {
-       return;
-    }
-
-    setIsBulkSending(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const contact of targets) {
-      setSendingTeamsIds(prev => new Set(prev).add(contact.id));
-      try {
-        const response = await fetch('/api/teams/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: contact.teams,
-            message: getPopulatedMessage(contact.name)
-          })
-        });
-        
-        if (!response.ok) {
-           const data = await response.json();
-           throw new Error(data.details || data.error);
-        }
-        successCount++;
-      } catch (err: any) {
-        console.error(`Failed for ${contact.name}:`, err.message);
-        failCount++;
-      } finally {
-        setSendingTeamsIds(prev => {
-          const next = new Set(prev);
-          next.delete(contact.id);
-          return next;
-        });
-      }
-    }
     
-    setIsBulkSending(false);
-    alert(`Bulk Send Complete!\n\nSuccessfully Sent: ${successCount}\nFailed: ${failCount}`);
+    alert(`Opening ${targets.length} Teams chat tabs...`);
+    targets.forEach(contact => shareViaTeamsDeepLink(contact));
   };
 
   const toggleAllContacts = () => {
@@ -773,7 +704,7 @@ export default function CampaignBriefBuilder() {
                              </label>
                              
                              <button
-                               onClick={bulkSendTeamsAPI}
+                               onClick={bulkSendTeamsDeepLink}
                                disabled={isBulkSending || selectedPubIds.size === 0}
                                className={`px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition-all shadow-lg ${
                                  isBulkSending || selectedPubIds.size === 0
