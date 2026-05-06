@@ -11,12 +11,14 @@ datasource db {
 }
 
 model Usage {
-  id        Int      @id @default(autoincrement())
-  email     String
-  date      String   // Format: YYYY-MM-DD
-  count     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  email            String
+  date             String   // Format: YYYY-MM-DD
+  count            Int      @default(0)
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@unique([email, date])
 }

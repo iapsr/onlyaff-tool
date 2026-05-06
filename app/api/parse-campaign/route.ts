@@ -112,8 +112,34 @@ If a field is missing, return empty string or empty array.`
       ],
     });
 
+    const usageInfo = completion.usage;
     const extractedData = completion.choices[0].message.content;
     
+    // Update usage with tokens
+    if (session?.user?.email) {
+      const today = new Date().toISOString().split("T")[0];
+      await prisma.usage.upsert({
+        where: {
+          email_date: {
+            email: session.user.email,
+            date: today,
+          },
+        },
+        update: { 
+          count: { increment: 1 },
+          promptTokens: { increment: usageInfo?.prompt_tokens || 0 },
+          completionTokens: { increment: usageInfo?.completion_tokens || 0 },
+        },
+        create: {
+          email: session.user.email,
+          date: today,
+          count: 1,
+          promptTokens: usageInfo?.prompt_tokens || 0,
+          completionTokens: usageInfo?.completion_tokens || 0,
+        },
+      });
+    }
+
     // Parse the JSON string from OpenAI back to an object to return cleanly
     let parsedData = {};
     if (extractedData) {
