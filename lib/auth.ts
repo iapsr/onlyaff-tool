@@ -26,11 +26,17 @@ export const authOptions: NextAuthOptions = {
         const adminPassword = process.env.ADMIN_USER_PASSWORD;
         const admin2FA = process.env.ADMIN_USER_2FA;
 
+        console.log('Login attempt for:', credentials?.email);
+        console.log('Admin Email in Env:', adminEmail ? 'SET' : 'MISSING');
+        console.log('Admin Pass in Env:', adminPassword ? 'SET' : 'MISSING');
+        console.log('Admin 2FA in Env:', admin2FA ? 'SET' : 'MISSING');
+
         if (
           credentials?.email === adminEmail && 
           credentials?.password === adminPassword &&
           credentials?.["2fa"] === admin2FA
         ) {
+          console.log('Login successful for:', adminEmail);
           return {
             id: "admin",
             name: "Administrator",
@@ -38,6 +44,8 @@ export const authOptions: NextAuthOptions = {
             role: "admin",
           };
         }
+        
+        console.log('Login failed: Credentials do not match');
         return null;
       }
     }),
@@ -66,6 +74,7 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: '/api/auth/signin', // Default sign in page
-  }
+    signIn: '/api/auth/signin', 
+  },
+  debug: true,
 };
