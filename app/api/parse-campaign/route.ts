@@ -1,168 +1,106 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
-// Initialize the OpenAI client (lazily in the handler to use DB key if available)
-let openaiClient: OpenAI | null = null;
+// Initialize OpenAI with the environment variable
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-async function getOpenAI() {
-  const dbKey = await prisma.setting.findUnique({ where: { id: 'openai_api_key' } });
-  const apiKey = dbKey?.value || process.env.OPENAI_API_KEY;
-  
-  if (!openaiClient || openaiClient.apiKey !== apiKey) {
-    openaiClient = new OpenAI({ apiKey });
-  }
-  return openaiClient;
-}
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
+    const { text } = await req.json();
     const session = await getServerSession(authOptions);
-    const { text } = await request.json();
-
-    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
-    const userEmail = session?.user?.email;
-    const isGuest = !userEmail;
-    const identifier = userEmail || `guest-${ip}`;
-    const today = new Date().toISOString().split("T")[0];
-
-    // Check usage for current user/guest
-    const aggregateUsage = await prisma.usage.aggregate({
-      where: { email: identifier },
-      _sum: { count: true }
-    });
-
-    const totalCount = aggregateUsage._sum.count || 0;
-
-    // Limit guest users to 3 total briefs
-    if (isGuest && totalCount >= 3) {
-      return NextResponse.json(
-        {
-          error: "Guest limit reached",
-          details: "Guest users are limited to 3 campaign briefs total. Please sign in to continue using OnlyAff.",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Existing LinkedIn daily limit logic (if needed, but user didn't specify changing this)
-    if (userEmail && (session as any).user.provider === "linkedin") {
-       const dailyUsage = await prisma.usage.findUnique({
-         where: { email_date: { email: userEmail, date: today } }
-       });
-       if (dailyUsage && dailyUsage.count >= 3) {
-          return NextResponse.json(
-            { error: "Daily limit reached", details: "LinkedIn users are limited to 3 per day." },
-            { status: 429 }
-          );
-       }
-    }
+    const userEmail = session?.user?.email || "guest";
+    const userIp = req.headers.get('x-forwarded-for') || '127.0.0.1';
+    const trackingId = userEmail !== "guest" ? userEmail : userIp;
 
     if (!text) {
-      return NextResponse.json({ error: "No text provided" }, { status: 400 });
+      return NextResponse.json({ error: 'Missing Text', details: 'Input text is required' }, { status: 400 });
     }
 
-    const openai = await getOpenAI();
+    // Check Usage Limits for Guests
+    if (userEmail === "guest") {
+      const usageCount = await prisma.usage.aggregate({
+        where: { email: trackingId },
+        _sum: { count: true }
+      });
+      const totalUsed = usageCount._sum.count || 0;
+      if (totalUsed >= 3) {
+        return NextResponse.json({ 
+          error: 'Limit Reached', 
+          details: 'Guest limit reached (3 briefs). Please sign in with LinkedIn to unlock unlimited briefs.' 
+        }, { status: 403 });
+      }
+    }
+
+    const prompt = `You are an expert Ad Operations specialist. Parse the following raw campaign instructions into a clean, structured JSON format.
+    
+    Required JSON Structure:
+    {
+      "campaign_name": "string",
+      "geo": "string (e.g. US, UK, Global)",
+      "mmp": "string (e.g. AppsFlyer, Adjust)",
+      "model": "string (e.g. CPI, CPA)",
+      "preview_links": { "android": "url", "ios": "url" },
+      "payable_event": "string",
+      "payout": "string or array of tiers",
+      "kpis": ["string"],
+      "validation_rules": ["string"],
+      "feedback": ["string"],
+      "notes": ["string"]
+    }
+
+    Rules:
+    1. If a field is missing, return null for it.
+    2. Extract only what is present.
+    3. Keep descriptions professional and concise.
+
+    Raw Input:
+    ${text}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      temperature: 0.1,
-      response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content: `You are an expert affiliate campaign manager.
-
-Your job is to extract and standardize campaign details from messy input text.
-
-Return ONLY valid JSON. No explanation.
-
-Follow these rules strictly:
-1. Always normalize field names.
-2. Extract maximum useful information even if text is unstructured.
-3. If multiple values exist, pick the most relevant one.
-4. Clean text (remove unnecessary words, keep it concise).
-5. Convert KPIs, rules, and notes into clean bullet points.
-6. If the payout is slab-based or has multiple tiers, return them all together as an array of strings in the 'payout' field.
-7. DO NOT use the App Store or Play Store preview links as the Tracking Link. Search the raw text for any explicit parameter like 'af_prt=something' and extract it exactly as written into the 'af_prt' field.
-
-JSON format:
-
-{
-  "campaign_name": "",
-  "geo": "",
-  "mmp": "",
-  "model": "",
-  "preview_links": {
-    "android": "",
-    "ios": ""
-  },
-  "tracking_link": "",
-  "af_prt": "",
-  "payable_event": "",
-  "payout": "",
-  "kpis": [],
-  "validation_rules": [],
-  "feedback": [],
-  "notes": []
-}
-
-Important:
-- KPIs = performance targets only
-- Validation Rules = restrictions / conditions
-- Notes = extra info
-
-If a field is missing, return empty string or empty array.`
-        },
-        {
-          role: "user",
-          content: `Input: ${text}`
-        }
+        { role: "system", content: "You are a specialized parser for mobile advertising campaign briefs. Always return strictly valid JSON." },
+        { role: "user", content: prompt }
       ],
+      response_format: { type: "json_object" }
     });
 
-    const usageInfo = completion.usage;
-    const extractedData = completion.choices[0].message.content;
-    
-    // Update usage with tokens
+    const parsedData = JSON.parse(completion.choices[0].message.content || '{}');
+
+    // Track Usage
+    const today = new Date().toISOString().split('T')[0];
     await prisma.usage.upsert({
       where: {
         email_date: {
-          email: identifier,
+          email: trackingId,
           date: today,
         },
       },
-      update: { 
+      update: {
         count: { increment: 1 },
-        promptTokens: { increment: usageInfo?.prompt_tokens || 0 },
-        completionTokens: { increment: usageInfo?.completion_tokens || 0 },
+        promptTokens: { increment: completion.usage?.prompt_tokens || 0 },
+        completionTokens: { increment: completion.usage?.completion_tokens || 0 },
       },
       create: {
-        email: identifier,
+        email: trackingId,
         date: today,
         count: 1,
-        promptTokens: usageInfo?.prompt_tokens || 0,
-        completionTokens: usageInfo?.completion_tokens || 0,
+        promptTokens: completion.usage?.prompt_tokens || 0,
+        completionTokens: completion.usage?.completion_tokens || 0,
       },
     });
 
-    // Parse the JSON string from OpenAI back to an object to return cleanly
-    let parsedData = {};
-    if (extractedData) {
-      parsedData = JSON.parse(extractedData);
-    }
-
     return NextResponse.json(parsedData);
   } catch (error: any) {
-    console.error('OpenAI API error:', error);
-    return NextResponse.json(
-      { 
-        error: "Failed to parse text using OpenAI", 
-        details: error?.message || "Unknown error"
-      }, 
-      { status: 500 }
-    );
+    console.error('Parsing error:', error);
+    return NextResponse.json({ 
+      error: 'Processing Failed', 
+      details: error.message 
+    }, { status: 500 });
   }
 }

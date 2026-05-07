@@ -28,37 +28,14 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openaiKey, setOpenaiKey] = useState('');
-  const [savingKey, setSavingKey] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       fetchStats();
-      fetchSettings();
     }
   }, [status]);
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch('/api/admin/settings');
-      const data = await res.json();
-      if (res.ok) setOpenaiKey(data.openai_api_key || '');
-    } catch (e) { console.error(e); }
-  };
 
-  const saveSettings = async () => {
-    setSavingKey(true);
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ openai_api_key: openaiKey })
-      });
-      if (res.ok) alert("Settings saved successfully!");
-      else throw new Error("Failed");
-    } catch (e) { alert("Failed to save settings"); }
-    finally { setSavingKey(false); }
-  };
 
   const fetchStats = async () => {
     try {
@@ -131,34 +108,7 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        <div className="bg-[#111111]/80 border border-white/10 rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-[#BEFF00]/5 blur-3xl rounded-full translate-x-10 -translate-y-10"></div>
-           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-             <span className="text-white">🔑</span> API Configuration
-           </h2>
-           <div className="flex flex-col gap-4">
-              <div>
-                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">OpenAI API Key (GPT-4o)</label>
-                 <div className="flex flex-col sm:flex-row gap-4">
-                    <input 
-                      type="password"
-                      value={openaiKey}
-                      onChange={(e) => setOpenaiKey(e.target.value)}
-                      placeholder={openaiKey ? "••••••••••••" : "No key set (Using Vercel Env Fallback)"}
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none focus:border-[#BEFF00]/50 transition-all font-mono"
-                    />
-                    <button 
-                      onClick={saveSettings}
-                      disabled={savingKey}
-                      className="px-8 py-3 bg-[#BEFF00] text-black font-bold rounded-xl text-sm hover:bg-[#a5e000] transition-all disabled:opacity-50 shadow-lg shadow-[#BEFF00]/10 whitespace-nowrap"
-                    >
-                      {savingKey ? 'Saving...' : 'Update Key'}
-                    </button>
-                 </div>
-                 <p className="text-[10px] text-gray-500 mt-3 font-medium">This key is stored securely in the database and used for all campaign parsing operations.</p>
-              </div>
-           </div>
-        </div>
+
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

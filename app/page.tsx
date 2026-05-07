@@ -413,7 +413,7 @@ export default function CampaignBriefBuilder() {
       </div>
 
       {/* Main App Area */}
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0">
         
         {/* Header (Glass) */}
         <header className="flex items-center justify-between px-6 py-4 bg-[#111111]/60 backdrop-blur-xl border-b border-white/5 shrink-0 h-[72px]">
@@ -586,6 +586,15 @@ export default function CampaignBriefBuilder() {
             </div>
           </div>
         </div>
+        
+        {/* Footer Moved Inside Main Column */}
+        <footer className="py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 px-8 w-full max-w-[1600px] mx-auto shrink-0 relative z-10 mt-auto">
+           <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em]">© 2024 onlyaff.io • All Rights Reserved</p>
+           <div className="flex items-center gap-6">
+              <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Privacy Policy</a>
+              <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Terms of Use</a>
+           </div>
+        </footer>
       </div>
 
       {/* Teams Hub Modal */}
@@ -829,14 +838,6 @@ export default function CampaignBriefBuilder() {
            </div>
         </div>
       )}
-
-      <footer className="mt-8 py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 w-full max-w-[1600px] mx-auto shrink-0 relative z-10">
-         <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em]">© 2024 onlyaff.io • All Rights Reserved</p>
-         <div className="flex items-center gap-6">
-            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Privacy Policy</a>
-            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Terms of Use</a>
-         </div>
-      </footer>
 
     </div>
   );
