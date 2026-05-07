@@ -35,13 +35,36 @@ export async function GET() {
     const outputCost = (completionTokens / 1000000) * 15.00;
     const totalCost = inputCost + outputCost;
 
+    const userStats = await prisma.usage.groupBy({
+      by: ['email'],
+      _sum: {
+        count: true,
+        promptTokens: true,
+        completionTokens: true,
+      },
+      _max: {
+        updatedAt: true,
+      },
+      orderBy: {
+        _sum: {
+          count: 'desc',
+        },
+      },
+    });
+
     return NextResponse.json({
       totalUsers: totalUsers.length,
       totalBriefs,
       promptTokens,
       completionTokens,
       estimatedCost: totalCost.toFixed(4),
-      currency: "USD"
+      currency: "USD",
+      users: userStats.map(u => ({
+        email: u.email,
+        count: u._sum.count || 0,
+        tokens: (u._sum.promptTokens || 0) + (u._sum.completionTokens || 0),
+        lastActive: u._max.updatedAt
+      }))
     });
   } catch (error: any) {
     console.error('Admin stats fetch error:', error);

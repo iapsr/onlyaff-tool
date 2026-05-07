@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSession, signIn } from "next-auth/react";
 
+interface UserStat {
+  email: string;
+  count: number;
+  tokens: number;
+  lastActive: string;
+}
+
 interface AdminStats {
   totalUsers: number;
   totalBriefs: number;
@@ -10,6 +17,7 @@ interface AdminStats {
   completionTokens: number;
   estimatedCost: string;
   currency: string;
+  users: UserStat[];
 }
 
 export default function AdminDashboard() {
@@ -131,8 +139,44 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        <div className="bg-[#111111]/40 border border-white/5 rounded-3xl p-8 mb-12">
+           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+             <span className="text-[#BEFF00]">📈</span> User Activity
+           </h2>
+           <div className="overflow-x-auto">
+             <table className="w-full text-left border-collapse">
+               <thead>
+                 <tr className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-white/5">
+                   <th className="pb-4 px-2">User Email</th>
+                   <th className="pb-4 px-2 text-center">Briefs</th>
+                   <th className="pb-4 px-2 text-center">Tokens</th>
+                   <th className="pb-4 px-2 text-right">Last Active</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-white/5">
+                 {stats?.users.map((user, i) => (
+                   <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
+                     <td className="py-4 px-2 font-semibold text-gray-300 group-hover:text-white transition-colors">{user.email}</td>
+                     <td className="py-4 px-2 text-center">
+                       <span className="bg-[#BEFF00]/10 text-[#BEFF00] px-2 py-1 rounded text-xs font-bold border border-[#BEFF00]/20">
+                         {user.count}
+                       </span>
+                     </td>
+                     <td className="py-4 px-2 text-center text-gray-400 text-sm">{(user.tokens / 1000).toFixed(1)}k</td>
+                     <td className="py-4 px-2 text-right text-gray-500 text-xs font-medium">
+                       {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : 'N/A'}
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+        </div>
+
         <div className="bg-[#111111]/40 border border-white/5 rounded-3xl p-8">
-           <h2 className="text-xl font-bold mb-6">Detailed Breakdown</h2>
+           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+             <span className="text-blue-400">⚙️</span> System Infrastructure
+           </h2>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>
                 <div className="text-xs font-bold text-gray-500 uppercase mb-1">Total Briefs</div>
