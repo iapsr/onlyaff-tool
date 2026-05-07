@@ -18,15 +18,18 @@ export const authOptions: NextAuthOptions = {
       name: "Admin Login",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "admin@example.com" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        "2fa": { label: "2FA PIN", type: "text", placeholder: "Enter Admin PIN" }
       },
       async authorize(credentials) {
         const adminEmail = process.env.ADMIN_USER_EMAIL;
         const adminPassword = process.env.ADMIN_USER_PASSWORD;
+        const admin2FA = process.env.ADMIN_USER_2FA;
 
         if (
           credentials?.email === adminEmail && 
-          credentials?.password === adminPassword
+          credentials?.password === adminPassword &&
+          credentials?.["2fa"] === admin2FA
         ) {
           return {
             id: "admin",
