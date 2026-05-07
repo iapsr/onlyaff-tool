@@ -429,10 +429,10 @@ export default function CampaignBriefBuilder() {
         </header>
 
         {/* Main Grid: 60% Left, 40% Right */}
-        <div className="flex-1 flex flex-col lg:grid lg:grid-cols-10 overflow-hidden w-full max-w-[1600px] mx-auto p-4 lg:p-8 gap-6 lg:gap-8 relative">
+        <div className="flex-1 flex flex-col lg:grid lg:grid-cols-10 overflow-hidden w-full max-w-[1600px] mx-auto p-4 lg:p-8 gap-6 lg:gap-8 relative min-h-[600px]">
           
-          {/* Coming Soon Overlay */}
-          <div className="absolute inset-0 z-[40] backdrop-blur-[12px] bg-black/40 flex items-center justify-center p-6">
+          {/* Coming Soon Overlay - Now covering the entire flex-1 area */}
+          <div className="fixed inset-0 z-[100] backdrop-blur-[12px] bg-black/60 flex items-center justify-center p-6">
              <div className="text-center p-12 rounded-[40px] border border-[#BEFF00]/20 bg-[#050505]/80 shadow-[0_0_80px_-20px_rgba(190,255,0,0.25)] backdrop-blur-2xl max-w-sm w-full animate-in fade-in zoom-in duration-500">
                 <div className="w-20 h-20 bg-[#BEFF00]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-[#BEFF00]/20">
                    <span className="text-4xl">🚀</span>

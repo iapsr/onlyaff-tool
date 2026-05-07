@@ -12,29 +12,6 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const totalUsers = await prisma.usage.groupBy({
-      by: ['email'],
-    });
-
-    const aggregateUsage = await prisma.usage.aggregate({
-      _sum: {
-        promptTokens: true,
-        completionTokens: true,
-        count: true,
-      },
-    });
-
-    const promptTokens = aggregateUsage._sum.promptTokens || 0;
-    const completionTokens = aggregateUsage._sum.completionTokens || 0;
-    const totalBriefs = aggregateUsage._sum.count || 0;
-
-    // GPT-4o Pricing (Estimate)
-    // Input: $5.00 / 1M tokens
-    // Output: $15.00 / 1M tokens
-    const inputCost = (promptTokens / 1000000) * 5.00;
-    const outputCost = (completionTokens / 1000000) * 15.00;
-    const totalCost = inputCost + outputCost;
-
     const userStats = await prisma.usage.groupBy({
       by: ['email'],
       _sum: {
@@ -46,11 +23,32 @@ export async function GET() {
         updatedAt: true,
       },
       orderBy: {
-        _sum: {
-          count: 'desc',
+        _max: {
+          updatedAt: 'desc',
         },
       },
     });
+
+    const totalUsers = await prisma.usage.groupBy({
+      by: ['email'],
+    });
+
+    const totalStats = await prisma.usage.aggregate({
+      _sum: {
+        count: true,
+        promptTokens: true,
+        completionTokens: true,
+      },
+    });
+
+    const totalBriefs = totalStats._sum.count || 0;
+    const promptTokens = totalStats._sum.promptTokens || 0;
+    const completionTokens = totalStats._sum.completionTokens || 0;
+
+    // GPT-4o estimated cost ($5 per 1M prompt tokens, $15 per 1M completion tokens)
+    const promptCost = (promptTokens / 1000000) * 5.00;
+    const completionCost = (completionTokens / 1000000) * 15.00;
+    const totalCost = promptCost + completionCost;
 
     // Calculate DAU (Today)
     const today = new Date().toISOString().split('T')[0];
@@ -69,6 +67,16 @@ export async function GET() {
     });
     const mau = mauRaw.length;
 
+    // Calculate Real-time (Active in last 5 mins)
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const onlineNowRaw = await prisma.usage.groupBy({
+      by: ['email'],
+      where: {
+        updatedAt: { gte: fiveMinsAgo }
+      }
+    });
+    const onlineNow = onlineNowRaw.length;
+
     return NextResponse.json({
       totalUsers: totalUsers.length,
       totalBriefs,
@@ -78,6 +86,7 @@ export async function GET() {
       currency: "USD",
       dau,
       mau,
+      onlineNow,
       users: userStats.map(u => ({
         email: u.email,
         count: u._sum.count || 0,
@@ -86,7 +95,10 @@ export async function GET() {
       }))
     });
   } catch (error: any) {
-    console.error('Admin stats fetch error:', error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error('Admin stats error:', error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
+    );
   }
 }

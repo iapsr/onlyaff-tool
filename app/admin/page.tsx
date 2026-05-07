@@ -19,6 +19,7 @@ interface AdminStats {
   currency: string;
   dau: number;
   mau: number;
+  onlineNow: number;
   users: UserStat[];
 }
 
@@ -134,7 +135,7 @@ export default function AdminDashboard() {
                       type="password"
                       value={openaiKey}
                       onChange={(e) => setOpenaiKey(e.target.value)}
-                      placeholder="sk-..."
+                      placeholder={openaiKey ? "••••••••••••" : "No key set (Using Vercel Env Fallback)"}
                       className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none focus:border-[#BEFF00]/50 transition-all font-mono"
                     />
                     <button 
@@ -161,7 +162,9 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Active Users</span>
-                   <span className="text-[9px] font-bold text-blue-400/70 uppercase">DAU: {stats.dau} • MAU: {stats.mau}</span>
+                   <span className="text-[9px] font-bold text-blue-400/70 uppercase">
+                      <span className="text-emerald-400">● {stats.onlineNow} Online</span> • DAU: {stats.dau} • MAU: {stats.mau}
+                   </span>
                 </div>
               </div>
               <div className="text-5xl font-black text-white mb-2">{stats.totalUsers}</div>
