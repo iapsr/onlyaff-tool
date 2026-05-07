@@ -6,9 +6,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+    const currentUserEmail = session?.user?.email?.toLowerCase();
 
-    if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
+    if (!currentUserEmail || !adminEmails.includes(currentUserEmail)) {
+      console.error('Unauthorized access attempt:', currentUserEmail);
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -95,7 +97,7 @@ export async function GET() {
       }))
     });
   } catch (error: any) {
-    console.error('Admin stats error:', error);
+    console.error('Admin stats critical error:', error);
     return NextResponse.json(
       { error: "Internal Server Error", details: error.message },
       { status: 500 }

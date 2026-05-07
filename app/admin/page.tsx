@@ -117,9 +117,18 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-gray-500 mt-2 font-medium">Monitoring onlyaff.io infrastructure & costs</p>
           </div>
-          <a href="/" className="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-sm font-semibold transition-all">
-            Back to Dashboard
-          </a>
+          <div className="flex gap-4">
+            <button 
+              onClick={fetchStats}
+              className="px-5 py-2.5 bg-[#BEFF00]/10 text-[#BEFF00] hover:bg-[#BEFF00]/20 rounded-xl border border-[#BEFF00]/20 text-sm font-semibold transition-all flex items-center gap-2"
+            >
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={loading ? "animate-spin" : ""}><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+               Refresh
+            </button>
+            <a href="/" className="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-sm font-semibold transition-all">
+              Back to Dashboard
+            </a>
+          </div>
         </header>
 
         <div className="bg-[#111111]/80 border border-white/10 rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden">
@@ -216,6 +225,13 @@ export default function AdminDashboard() {
                  </tr>
                </thead>
                <tbody className="divide-y divide-white/5">
+                 {stats?.users.length === 0 && (
+                   <tr>
+                     <td colSpan={4} className="py-12 text-center text-gray-500 italic text-sm">
+                       No user activity recorded in the database yet.
+                     </td>
+                   </tr>
+                 )}
                  {stats?.users.map((user, i) => (
                    <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
                      <td className="py-4 px-2 font-semibold text-gray-300 group-hover:text-white transition-colors">{user.email}</td>

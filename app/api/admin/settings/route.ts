@@ -6,9 +6,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+    const currentUserEmail = session?.user?.email?.toLowerCase();
 
-    if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
+    if (!currentUserEmail || !adminEmails.includes(currentUserEmail)) {
+      console.error('Unauthorized settings read attempt:', currentUserEmail);
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -25,9 +27,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+    const currentUserEmail = session?.user?.email?.toLowerCase();
 
-    if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
+    if (!currentUserEmail || !adminEmails.includes(currentUserEmail)) {
+      console.error('Unauthorized settings write attempt:', currentUserEmail);
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
