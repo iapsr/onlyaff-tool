@@ -441,7 +441,9 @@ export default function CampaignBriefBuilder() {
             {session ? (
               <div className="flex items-center gap-3">
                  <div className="hidden sm:block text-right">
-                    <div className="text-[10px] font-bold text-white uppercase truncate max-w-[100px]">{session.user?.name}</div>
+                    <div className="text-[10px] font-bold text-white uppercase truncate max-w-[100px]">
+                      {(session.user as any).role === 'admin' ? 'Administrator' : `User ${(session.user as any).userId || '...'}`}
+                    </div>
                     <div className="text-[9px] text-gray-500 font-medium uppercase">{session.user?.email}</div>
                  </div>
                  <button 
