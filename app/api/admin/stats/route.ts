@@ -52,6 +52,23 @@ export async function GET() {
       },
     });
 
+    // Calculate DAU (Today)
+    const today = new Date().toISOString().split('T')[0];
+    const dau = await prisma.usage.count({
+      where: { date: today },
+    });
+
+    // Calculate MAU (Last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const mauRaw = await prisma.usage.groupBy({
+      by: ['email'],
+      where: {
+        updatedAt: { gte: thirtyDaysAgo }
+      }
+    });
+    const mau = mauRaw.length;
+
     return NextResponse.json({
       totalUsers: totalUsers.length,
       totalBriefs,
@@ -59,6 +76,8 @@ export async function GET() {
       completionTokens,
       estimatedCost: totalCost.toFixed(4),
       currency: "USD",
+      dau,
+      mau,
       users: userStats.map(u => ({
         email: u.email,
         count: u._sum.count || 0,

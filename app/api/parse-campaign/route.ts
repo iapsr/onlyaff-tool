@@ -4,58 +4,67 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Initialize the OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize the OpenAI client (lazily in the handler to use DB key if available)
+let openaiClient: OpenAI | null = null;
+
+async function getOpenAI() {
+  const dbKey = await prisma.setting.findUnique({ where: { id: 'openai_api_key' } });
+  const apiKey = dbKey?.value || process.env.OPENAI_API_KEY;
+  
+  if (!openaiClient || openaiClient.apiKey !== apiKey) {
+    openaiClient = new OpenAI({ apiKey });
+  }
+  return openaiClient;
+}
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     const { text } = await request.json();
 
-    // Check usage for LinkedIn users
-    if (session?.user?.email && (session as any).user.provider === "linkedin") {
-      const today = new Date().toISOString().split("T")[0];
-      const usage = await prisma.usage.findUnique({
-        where: {
-          email_date: {
-            email: session.user.email,
-            date: today,
-          },
-        },
-      });
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+    const userEmail = session?.user?.email;
+    const isGuest = !userEmail;
+    const identifier = userEmail || `guest-${ip}`;
+    const today = new Date().toISOString().split("T")[0];
 
-      if (usage && usage.count >= 3) {
-        return NextResponse.json(
-          {
-            error: "Daily limit reached",
-            details: "LinkedIn users are limited to 3 campaign briefs per day. Please upgrade or try again tomorrow.",
-          },
-          { status: 429 }
-        );
-      }
+    // Check usage for current user/guest
+    const aggregateUsage = await prisma.usage.aggregate({
+      where: { email: identifier },
+      _sum: { count: true }
+    });
 
-      // Update usage
-      await prisma.usage.upsert({
-        where: {
-          email_date: {
-            email: session.user.email,
-            date: today,
-          },
+    const totalCount = aggregateUsage._sum.count || 0;
+
+    // Limit guest users to 3 total briefs
+    if (isGuest && totalCount >= 3) {
+      return NextResponse.json(
+        {
+          error: "Guest limit reached",
+          details: "Guest users are limited to 3 campaign briefs total. Please sign in to continue using OnlyAff.",
         },
-        update: { count: { increment: 1 } },
-        create: {
-          email: session.user.email,
-          date: today,
-          count: 1,
-        },
-      });
+        { status: 403 }
+      );
+    }
+
+    // Existing LinkedIn daily limit logic (if needed, but user didn't specify changing this)
+    if (userEmail && (session as any).user.provider === "linkedin") {
+       const dailyUsage = await prisma.usage.findUnique({
+         where: { email_date: { email: userEmail, date: today } }
+       });
+       if (dailyUsage && dailyUsage.count >= 3) {
+          return NextResponse.json(
+            { error: "Daily limit reached", details: "LinkedIn users are limited to 3 per day." },
+            { status: 429 }
+          );
+       }
     }
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
+
+    const openai = await getOpenAI();
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -118,29 +127,26 @@ If a field is missing, return empty string or empty array.`
     const extractedData = completion.choices[0].message.content;
     
     // Update usage with tokens
-    if (session?.user?.email) {
-      const today = new Date().toISOString().split("T")[0];
-      await prisma.usage.upsert({
-        where: {
-          email_date: {
-            email: session.user.email,
-            date: today,
-          },
-        },
-        update: { 
-          count: { increment: 1 },
-          promptTokens: { increment: usageInfo?.prompt_tokens || 0 },
-          completionTokens: { increment: usageInfo?.completion_tokens || 0 },
-        },
-        create: {
-          email: session.user.email,
+    await prisma.usage.upsert({
+      where: {
+        email_date: {
+          email: identifier,
           date: today,
-          count: 1,
-          promptTokens: usageInfo?.prompt_tokens || 0,
-          completionTokens: usageInfo?.completion_tokens || 0,
         },
-      });
-    }
+      },
+      update: { 
+        count: { increment: 1 },
+        promptTokens: { increment: usageInfo?.prompt_tokens || 0 },
+        completionTokens: { increment: usageInfo?.completion_tokens || 0 },
+      },
+      create: {
+        email: identifier,
+        date: today,
+        count: 1,
+        promptTokens: usageInfo?.prompt_tokens || 0,
+        completionTokens: usageInfo?.completion_tokens || 0,
+      },
+    });
 
     // Parse the JSON string from OpenAI back to an object to return cleanly
     let parsedData = {};

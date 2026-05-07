@@ -803,6 +803,14 @@ export default function CampaignBriefBuilder() {
         </div>
       )}
 
+      <footer className="mt-8 py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 w-full max-w-[1600px] mx-auto shrink-0 relative z-10">
+         <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em]">© 2024 onlyaff.io • All Rights Reserved</p>
+         <div className="flex items-center gap-6">
+            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Privacy Policy</a>
+            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-[#BEFF00] uppercase tracking-widest transition-colors">Terms of Use</a>
+         </div>
+      </footer>
+
     </div>
   );
 }

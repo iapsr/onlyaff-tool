@@ -22,3 +22,9 @@ model Usage {
 
   @@unique([email, date])
 }
+
+model Setting {
+  id        String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

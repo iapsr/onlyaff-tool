@@ -5,15 +5,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_CLIENT_ID!,
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    // }),
-    // LinkedInProvider({
-    //   clientId: process.env.LINKEDIN_CLIENT_ID!,
-    //   clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
-    //   authorization: { params: { scope: "openid profile email" } },
-    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+      authorization: { params: { scope: "openid profile email" } },
+    }),
     CredentialsProvider({
       name: "Admin Login",
       credentials: {

@@ -17,6 +17,8 @@ interface AdminStats {
   completionTokens: number;
   estimatedCost: string;
   currency: string;
+  dau: number;
+  mau: number;
   users: UserStat[];
 }
 
@@ -25,12 +27,37 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openaiKey, setOpenaiKey] = useState('');
+  const [savingKey, setSavingKey] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       fetchStats();
+      fetchSettings();
     }
   }, [status]);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings');
+      const data = await res.json();
+      if (res.ok) setOpenaiKey(data.openai_api_key || '');
+    } catch (e) { console.error(e); }
+  };
+
+  const saveSettings = async () => {
+    setSavingKey(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ openai_api_key: openaiKey })
+      });
+      if (res.ok) alert("Settings saved successfully!");
+      else throw new Error("Failed");
+    } catch (e) { alert("Failed to save settings"); }
+    finally { setSavingKey(false); }
+  };
 
   const fetchStats = async () => {
     try {
@@ -94,6 +121,35 @@ export default function AdminDashboard() {
           </a>
         </header>
 
+        <div className="bg-[#111111]/80 border border-white/10 rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-[#BEFF00]/5 blur-3xl rounded-full translate-x-10 -translate-y-10"></div>
+           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+             <span className="text-white">🔑</span> API Configuration
+           </h2>
+           <div className="flex flex-col gap-4">
+              <div>
+                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">OpenAI API Key (GPT-4o)</label>
+                 <div className="flex flex-col sm:flex-row gap-4">
+                    <input 
+                      type="password"
+                      value={openaiKey}
+                      onChange={(e) => setOpenaiKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none focus:border-[#BEFF00]/50 transition-all font-mono"
+                    />
+                    <button 
+                      onClick={saveSettings}
+                      disabled={savingKey}
+                      className="px-8 py-3 bg-[#BEFF00] text-black font-bold rounded-xl text-sm hover:bg-[#a5e000] transition-all disabled:opacity-50 shadow-lg shadow-[#BEFF00]/10 whitespace-nowrap"
+                    >
+                      {savingKey ? 'Saving...' : 'Update Key'}
+                    </button>
+                 </div>
+                 <p className="text-[10px] text-gray-500 mt-3 font-medium">This key is stored securely in the database and used for all campaign parsing operations.</p>
+              </div>
+           </div>
+        </div>
+
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             
@@ -103,10 +159,13 @@ export default function AdminDashboard() {
                 <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Active Users</span>
+                <div className="text-right">
+                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Active Users</span>
+                   <span className="text-[9px] font-bold text-blue-400/70 uppercase">DAU: {stats.dau} • MAU: {stats.mau}</span>
+                </div>
               </div>
               <div className="text-5xl font-black text-white mb-2">{stats.totalUsers}</div>
-              <div className="text-sm text-gray-500 font-medium">Total registered accounts</div>
+              <div className="text-sm text-gray-500 font-medium">Total unique accounts & guests</div>
             </div>
 
             {/* Token Usage */}
