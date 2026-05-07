@@ -413,7 +413,7 @@ export default function CampaignBriefBuilder() {
       </div>
 
       {/* Main App Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         
         {/* Header (Glass) */}
         <header className="flex items-center justify-between px-6 py-4 bg-[#111111]/60 backdrop-blur-xl border-b border-white/5 shrink-0 h-[72px]">
