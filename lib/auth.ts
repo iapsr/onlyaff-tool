@@ -3,10 +3,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
-import { authenticator } from "otplib";
+import * as otplib from "otplib";
 import { Resend } from "resend";
 import { generateUserId } from "./utils";
+import { magicLinkTemplate } from "./email-templates";
 
+const { authenticator } = otplib;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const authOptions: NextAuthOptions = {
@@ -27,15 +29,7 @@ export const authOptions: NextAuthOptions = {
             from: process.env.EMAIL_FROM || "onboarding@resend.dev",
             to: email,
             subject: `Sign in to onlyaff.io`,
-            html: `
-              <div style="background: #050505; color: #fff; padding: 40px; font-family: sans-serif; border-radius: 20px; max-width: 500px; margin: auto; border: 1px solid rgba(255,255,255,0.1);">
-                <div style="width: 40px; height: 40px; background: #BEFF00; border-radius: 10px; margin-bottom: 24px;"></div>
-                <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 16px;">Sign in to onlyaff.io</h1>
-                <p style="color: #666; font-size: 14px; line-height: 24px; margin-bottom: 32px;">Click the button below to securely sign in to your account. This link will expire in 24 hours.</p>
-                <a href="${url}" style="background: #BEFF00; color: #000; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 14px; display: inline-block;">Log In to Dashboard</a>
-                <p style="color: #444; font-size: 12px; margin-top: 32px;">If you did not request this email, you can safely ignore it.</p>
-              </div>
-            `
+            html: magicLinkTemplate(url)
           });
         } catch (error) {
           console.error("Resend error:", error);
