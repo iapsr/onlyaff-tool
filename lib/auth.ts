@@ -3,12 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
-import * as otplib from "otplib";
+import { authenticator } from "@otplib/preset-default";
 import { Resend } from "resend";
 import { generateUserId } from "./utils";
 import { magicLinkTemplate } from "./email-templates";
 
-const { authenticator } = otplib;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const authOptions: NextAuthOptions = {
