@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
-export default function SignIn() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
@@ -168,5 +168,17 @@ export default function SignIn() {
       </div>
 
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
+        <div className="w-10 h-10 border-4 border-[#BEFF00]/20 border-t-[#BEFF00] rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 }
