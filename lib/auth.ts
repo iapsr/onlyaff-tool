@@ -8,8 +8,6 @@ import { Resend } from "resend";
 import { generateUserId } from "./utils";
 import { magicLinkTemplate } from "./email-templates";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
@@ -24,6 +22,7 @@ export const authOptions: NextAuthOptions = {
     EmailProvider({
       async sendVerificationRequest({ identifier: email, url }) {
         try {
+          const resend = new Resend(process.env.RESEND_API_KEY);
           await resend.emails.send({
             from: process.env.EMAIL_FROM || "onboarding@resend.dev",
             to: email,
