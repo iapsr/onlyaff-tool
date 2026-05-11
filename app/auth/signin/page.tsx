@@ -12,9 +12,17 @@ function SignInContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<'user' | 'admin'>('user');
+  const [userMode, setUserMode] = useState<'signin' | 'signup'>('signin');
   const [show2FA, setShow2FA] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("admin") === "true") {
+      setView('admin');
+    } else {
+      setView('user');
+    }
+  }, [searchParams]);
 
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,28 +84,29 @@ function SignInContent() {
 
         <div className="text-center mb-8">
            <h1 className="text-2xl font-black text-white tracking-tight mb-2">
-             {view === 'admin' ? 'Admin Access' : 'Sign in to onlyaff.io'}
+             {view === 'admin' ? 'Admin Access' : (userMode === 'signin' ? 'Welcome Back' : 'Create Account')}
            </h1>
            <p className="text-gray-500 text-sm font-medium">
-             {view === 'admin' ? 'Secure administrative authentication' : "Don't have an account? No problem."}
+             {view === 'admin' ? 'Secure administrative authentication' : (userMode === 'signin' ? 'Sign in to onlyaff.io' : 'Join onlyaff.io for free')}
            </p>
         </div>
 
-        {/* View Switcher */}
-        <div className="flex bg-[#111] p-1 rounded-xl mb-8 border border-white/5">
-           <button 
-             onClick={() => { setView('user'); setShow2FA(false); }}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === 'user' ? 'bg-[#BEFF00] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
-           >
-             User Login
-           </button>
-           <button 
-             onClick={() => { setView('admin'); }}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === 'admin' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
-           >
-             Admin
-           </button>
-        </div>
+        {view === 'user' && (
+          <div className="flex bg-[#111] p-1 rounded-xl mb-8 border border-white/5">
+             <button 
+               onClick={() => setUserMode('signin')}
+               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${userMode === 'signin' ? 'bg-[#BEFF00] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+             >
+               Sign In
+             </button>
+             <button 
+               onClick={() => setUserMode('signup')}
+               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${userMode === 'signup' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+             >
+               Sign Up
+             </button>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-4 rounded-xl mb-6 text-center font-bold">
@@ -157,13 +166,13 @@ function SignInContent() {
             {isLoading ? (
               <span className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></span>
             ) : (
-              view === 'admin' ? 'Sign in to Admin' : 'Log In'
+              view === 'admin' ? 'Sign in to Admin' : (userMode === 'signin' ? 'Sign In' : 'Create Account')
             )}
           </button>
         </form>
 
         <p className="mt-8 text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-          By signing in, you agree to our <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a> and <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>.
+          By signing in, you agree to our <a href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms</a> and <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>.
         </p>
       </div>
 
