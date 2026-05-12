@@ -17,43 +17,72 @@ export default function DearBot() {
   
   const [isHovered, setIsHovered] = useState(false);
   const [animation, setAnimation] = useState('Run');
-  const [orbit, setOrbit] = useState('-90deg 85deg 105%');
+  const [orbit, setOrbit] = useState('90deg 85deg 105%');
+  
+  // New interaction logic: Bot patrols ONLY if cursor is idle for 2s.
+  const [isMouseIdle, setIsMouseIdle] = useState(true);
+  const isWalking = isMouseIdle && !isOpen && !isHovered;
+  
   const characterRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // Initial mount delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 500);
+    const timer = setTimeout(() => setIsVisible(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Sync state to animations/orbit
+  useEffect(() => {
+    if (isWalking) {
+      setAnimation('Run');
+      setOrbit('90deg 85deg 105%');
+    } else {
+      setAnimation('Idle');
+    }
+  }, [isWalking]);
+
+  // Global Mouse Tracking & Idle Timer
+  useEffect(() => {
+    let idleTimer: NodeJS.Timeout;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!characterRef.current) return;
+      // Mouse is active -> stop walking immediately
+      setIsMouseIdle(false);
       
-      if (!isHovered && !isOpen) {
-        setOrbit('-90deg 85deg 105%');
-        return;
+      // Update cursor tracking orientation
+      if (characterRef.current) {
+        const rect = characterRef.current.getBoundingClientRect();
+        const charX = rect.left + rect.width / 2;
+        const charY = rect.top + rect.height / 2;
+        
+        const deltaX = e.clientX - charX;
+        const deltaY = e.clientY - charY;
+        
+        const maxRotation = 45; 
+        const rotationY = 180 - (deltaX / window.innerWidth) * maxRotation * 2;
+        const pitch = 85 + (deltaY / window.innerHeight) * 20;
+
+        setOrbit(`${rotationY}deg ${pitch}deg 105%`);
       }
 
-      const rect = characterRef.current.getBoundingClientRect();
-      const charX = rect.left + rect.width / 2;
-      const charY = rect.top + rect.height / 2;
-      
-      const deltaX = e.clientX - charX;
-      const deltaY = e.clientY - charY;
-      
-      const maxRotation = 45; 
-      const rotationY = 180 - (deltaX / window.innerWidth) * maxRotation * 2;
-      const pitch = 85 + (deltaY / window.innerHeight) * 20;
-
-      setOrbit(`${rotationY}deg ${pitch}deg 105%`);
+      // Reset idle timer
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        setIsMouseIdle(true);
+      }, 2000);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    
+    // Start initial timer in case user never moves mouse
+    idleTimer = setTimeout(() => setIsMouseIdle(true), 2000);
+
     return () => {
-      clearTimeout(timer);
+      clearTimeout(idleTimer);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [isHovered, isOpen]);
+  }, []);
 
   // Auto-scroll to bottom when chat updates
   useEffect(() => {
@@ -65,7 +94,6 @@ export default function DearBot() {
   const handleInteraction = () => {
     if (!isOpen) {
       setIsOpen(true);
-      setAnimation('Idle');
       if (chat.length === 0) {
          setChat([{ role: 'dear', content: "I am ready. What parameters do we need to optimize?" }]);
       }
@@ -118,29 +146,19 @@ export default function DearBot() {
         {/* Full-screen Glass Blur when chat is open */}
         <div 
           className={`absolute inset-0 bg-black/70 backdrop-blur-md transition-all duration-700 pointer-events-auto ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          onClick={() => { setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('-90deg 85deg 105%'); }}
+          onClick={() => { setIsOpen(false); setIsHovered(false); }}
         />
 
         {/* Walking Avatar Stage */}
         <div 
-          className={`absolute bottom-0 ${isHovered || isOpen ? 'animation-pause' : 'animate-walk-around'}`}
+          className={`absolute bottom-0 ${isWalking ? 'animate-walk-around' : 'animation-pause'}`}
           style={{ left: '0%' }}
         >
           <div 
             ref={characterRef}
             className="relative flex flex-col items-center pointer-events-auto cursor-crosshair group"
-            onMouseEnter={() => {
-              setIsHovered(true);
-              setAnimation('Idle'); 
-              setOrbit('180deg 85deg 105%'); 
-            }}
-            onMouseLeave={() => {
-              if (!isOpen) {
-                setIsHovered(false);
-                setAnimation('Run');
-                setOrbit('-90deg 85deg 105%'); 
-              }
-            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             onClick={handleInteraction}
           >
             {/* Auto-popup hover bubble */}
