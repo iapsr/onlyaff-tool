@@ -171,7 +171,7 @@ export default function DearBot() {
 
         {/* Walking Avatar Stage - Anchored to right side */}
         <div 
-          className={`absolute bottom-0 ${isWalking ? 'animate-walk-around' : 'animation-pause'}`}
+          className={`absolute bottom-0 animate-walk-around ${isWalking ? '' : 'animation-pause'}`}
           style={{ right: '5%' }}
         >
           <div 
