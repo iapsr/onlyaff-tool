@@ -90,17 +90,17 @@ export default function DearBot() {
   const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
       return (
-        <div className="flex justify-end w-full animate-in slide-in-from-bottom-2 duration-300">
-          <div className="relative max-w-[85%] bg-[#BEFF00]/90 backdrop-blur-xl border border-[#BEFF00]/50 text-black px-5 py-3.5 text-[14px] font-medium leading-relaxed rounded-[24px] rounded-br-[6px] shadow-[0_10px_40px_rgba(190,255,0,0.2)]">
+        <div className="flex justify-end w-full animate-in slide-in-from-bottom-2 duration-500">
+          <div className="w-max max-w-[85%] bg-[#BEFF00] text-black px-6 py-3.5 text-[15px] font-medium leading-relaxed rounded-[24px] shadow-[0_0_30px_rgba(190,255,0,0.15)] animate-liquid">
             {msg.content}
           </div>
         </div>
       );
     }
     return (
-      <div className="flex justify-start w-full animate-in slide-in-from-bottom-2 duration-300">
-        <div className="relative max-w-[85%] bg-white/10 backdrop-blur-2xl border border-white/20 text-white px-5 py-3.5 text-[14px] font-medium leading-relaxed rounded-[24px] rounded-bl-[6px] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
-          <span className="font-black block mb-1 text-[#BEFF00] drop-shadow-md text-xs tracking-wider uppercase">Dear</span>
+      <div className="flex justify-start w-full animate-in slide-in-from-bottom-2 duration-500">
+        <div className="w-max max-w-[85%] bg-[#1E1E1E] border border-[#333333] text-white px-6 py-4 text-[15px] leading-relaxed rounded-[24px] shadow-2xl">
+          <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
           <span dangerouslySetInnerHTML={{ __html: msg.content.replace(/\bDear\b/gi, '<strong class="font-black text-[#BEFF00]">Dear</strong>').replace(/\*\*/g, '') }}></span>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function DearBot() {
         
         {/* Full-screen Glass Blur when chat is open */}
         <div 
-          className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-700 pointer-events-auto ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`absolute inset-0 bg-black/70 backdrop-blur-md transition-all duration-700 pointer-events-auto ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           onClick={() => { setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('-90deg 85deg 105%'); }}
         />
 
@@ -143,30 +143,31 @@ export default function DearBot() {
             }}
             onClick={handleInteraction}
           >
-            {/* Auto-popup hover bubble (Glassy) */}
+            {/* Auto-popup hover bubble */}
             {!isOpen && isHovered && (
-              <div className="absolute -top-4 bg-white/10 backdrop-blur-xl text-white p-4 rounded-[24px] rounded-br-[6px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-[300px] animate-in zoom-in duration-200 z-10 border border-white/20">
-                <p className="text-sm font-medium leading-relaxed">
+              <div className="absolute -top-4 bg-[#1E1E1E] border border-[#333333] text-white p-5 rounded-[24px] shadow-2xl w-max max-w-[320px] animate-in zoom-in duration-300 z-10">
+                <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
+                <p className="text-[14px] leading-relaxed">
                   Hi My Name is <span className="font-black text-[#BEFF00]">Dear</span>, if you are AdTech professional than I am your assistant?
                 </p>
               </div>
             )}
 
-            {/* Floating Glass Chat Bubbles */}
+            {/* Floating Chat Interface positioned near the head */}
             {isOpen && (
-              <div className="absolute bottom-[400px] w-[400px] flex flex-col z-20 pointer-events-auto">
+              <div className="absolute bottom-[480px] w-[420px] flex flex-col z-20 pointer-events-auto">
                  
-                 {/* Chat History Container (No solid background) */}
-                 <div ref={chatContainerRef} className="max-h-[50vh] overflow-y-auto px-4 pb-2 flex flex-col gap-4 custom-scrollbar">
-                    <div className="flex flex-col justify-end min-h-full gap-4">
+                 {/* Chat History Container (Flexible width wrapping) */}
+                 <div ref={chatContainerRef} className="max-h-[55vh] overflow-y-auto px-2 pb-4 flex flex-col gap-6 custom-scrollbar">
+                    <div className="flex flex-col justify-end min-h-full gap-5">
                       {chat.map((msg, i) => (
                         <React.Fragment key={i}>
                           {renderMessage(msg)}
                         </React.Fragment>
                       ))}
                       {isThinking && (
-                        <div className="flex justify-start w-full animate-in fade-in duration-300">
-                          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 px-5 py-4 rounded-[24px] rounded-bl-[6px] shadow-lg flex gap-1.5 items-center">
+                        <div className="flex justify-start w-full animate-in fade-in duration-500">
+                          <div className="w-max bg-[#1E1E1E] border border-[#333333] px-6 py-5 rounded-[24px] shadow-2xl flex gap-2 items-center">
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce"></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
@@ -176,24 +177,24 @@ export default function DearBot() {
                     </div>
                  </div>
 
-                 {/* Input Pill (Glassy) */}
-                 <form onSubmit={handleSubmit} className="px-4 pt-2 pb-6">
-                    <div className="relative flex items-center bg-black/40 backdrop-blur-2xl border border-white/20 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.6)] overflow-hidden transition-all focus-within:border-[#BEFF00]/50 focus-within:bg-black/60">
+                 {/* Dark Input Pill */}
+                 <form onSubmit={handleSubmit} className="px-2 pt-2 pb-6">
+                    <div className="relative flex items-center bg-[#050505] border border-[#2A2A2A] rounded-full shadow-2xl overflow-hidden transition-all focus-within:border-[#444444]">
                       <input 
                         type="text" 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Command Dear..." 
-                        className="w-full bg-transparent py-4 pl-6 pr-14 text-[15px] text-white placeholder:text-gray-400 focus:outline-none"
+                        className="w-full bg-transparent py-4 pl-6 pr-14 text-[15px] text-white placeholder:text-gray-500 focus:outline-none"
                         disabled={isThinking}
                         autoFocus
                       />
                       <button 
                         type="submit" 
                         disabled={!input.trim() || isThinking}
-                        className="absolute right-2 w-10 h-10 rounded-full bg-[#BEFF00] text-black flex items-center justify-center disabled:bg-white/10 disabled:text-white/30 transition-colors shadow-lg hover:bg-[#a5e000]"
+                        className="absolute right-2 w-10 h-10 rounded-full bg-[#1A1A1A] text-gray-400 flex items-center justify-center disabled:opacity-50 transition-colors hover:text-white hover:bg-[#2A2A2A]"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                       </button>
                     </div>
                  </form>
@@ -201,7 +202,7 @@ export default function DearBot() {
             )}
 
             {/* 3D BGMI-style Avatar */}
-            <div className={`relative w-[380px] h-[550px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'animate-hover-float scale-110' : 'scale-100 translate-y-0'}`}>
+            <div className={`relative w-[380px] h-[550px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'scale-110 -translate-y-4' : 'scale-100 translate-y-0'}`}>
               {/* @ts-ignore */}
               <model-viewer
                 src="https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb"
@@ -235,17 +236,18 @@ export default function DearBot() {
             animation-play-state: paused !important;
           }
           
-          /* 3D Hover Floating Physics */
-          @keyframes hover-float {
-            0%, 100% { transform: translateY(0px) scale(1.15); filter: drop-shadow(0 40px 40px rgba(0,0,0,0.9)); }
-            50% { transform: translateY(-20px) scale(1.15); filter: drop-shadow(0 60px 50px rgba(0,0,0,0.6)); }
+          /* Water/Liquid Pulse Glow Animation */
+          @keyframes liquid-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(190,255,0,0.5); }
+            70% { box-shadow: 0 0 0 20px rgba(190,255,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(190,255,0,0); }
           }
-          .animate-hover-float {
-            animation: hover-float 4s ease-in-out infinite;
+          .animate-liquid {
+            animation: liquid-pulse 2.5s infinite ease-out;
           }
 
           .custom-scrollbar::-webkit-scrollbar {
-            width: 0px; /* Hide scrollbar for cleaner look */
+            width: 0px; 
           }
         `}} />
       </div>
