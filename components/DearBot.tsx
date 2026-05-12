@@ -19,9 +19,9 @@ export default function DearBot() {
   const [isHovered, setIsHovered] = useState(false);
   const [animation, setAnimation] = useState('Run');
   
-  // Base orbit for running is 270deg (facing right). CSS scaleX(-1) handles the flip when running left.
+  // Base orbit for running is -90deg (facing right). CSS scaleX(-1) handles the flip when running left.
   // 180deg faces front.
-  const [orbit, setOrbit] = useState('270deg 85deg 105%');
+  const [orbit, setOrbit] = useState('-90deg 85deg 105%');
   const characterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,9 +32,9 @@ export default function DearBot() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!characterRef.current) return;
       
-      // If we are NOT hovering or interacting, keep him facing the direction of travel (270deg faces right)
+      // If we are NOT hovering or interacting, keep him facing the direction of travel
       if (!isHovered && !isOpen) {
-        setOrbit('270deg 85deg 105%');
+        setOrbit('-90deg 85deg 105%');
         return;
       }
 
@@ -47,7 +47,6 @@ export default function DearBot() {
       const deltaY = e.clientY - charY;
       
       // Base is 180deg (facing front).
-      // Decreasing the orbit moves the camera left, which makes the character appear to look right.
       const maxRotation = 45; 
       const rotationY = 180 - (deltaX / window.innerWidth) * maxRotation * 2;
       
@@ -69,7 +68,7 @@ export default function DearBot() {
       setIsOpen(true);
       setAnimation('Idle');
       if (chat.length === 0) {
-         setChat([{ role: 'dear', content: "I'm listening. What do you need optimized today?" }]);
+         setChat([{ role: 'dear', content: "I am ready. What parameters do we need to optimize?" }]);
       }
     }
   };
@@ -127,24 +126,24 @@ export default function DearBot() {
             className="relative flex flex-col items-center pointer-events-auto cursor-crosshair group"
             onMouseEnter={() => {
               setIsHovered(true);
-              setAnimation('Idle');
-              // Instantly face front when hovered
-              setOrbit('180deg 85deg 105%');
+              setAnimation('Idle'); // Stop running, transition to Idle
+              setOrbit('180deg 85deg 105%'); // Face front instantly
             }}
             onMouseLeave={() => {
               if (!isOpen) {
                 setIsHovered(false);
                 setAnimation('Run');
-                // Face running direction
-                setOrbit('270deg 85deg 105%');
+                setOrbit('-90deg 85deg 105%'); // Return to running direction
               }
             }}
             onClick={handleInteraction}
           >
-            {/* Auto-popup when walking (and not open) */}
-            {!isOpen && chat.length === 0 && (
-              <div className="absolute -top-16 bg-white/90 backdrop-blur-md text-black p-4 rounded-2xl rounded-br-[4px] shadow-2xl w-max opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 border border-[#BEFF00]">
-                <p className="text-sm font-bold leading-snug">Click to command <span className="font-black">Dear</span></p>
+            {/* Auto-popup when hovered but chat not locked open */}
+            {!isOpen && isHovered && (
+              <div className="absolute -top-16 bg-white/90 backdrop-blur-md text-black p-4 rounded-2xl rounded-br-[4px] shadow-2xl w-[280px] animate-in zoom-in duration-200 z-10 border border-[#BEFF00]">
+                <p className="text-sm font-bold leading-snug">
+                  Hi My Name is <span className="font-black">Dear</span>, if you are AdTech professional than I am your assistant?
+                </p>
                 <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white/90 border-b border-r border-[#BEFF00] transform rotate-45"></div>
               </div>
             )}
@@ -161,7 +160,7 @@ export default function DearBot() {
                      </span>
                      <span className="text-[11px] text-gray-500 font-medium">AdTech Specialist</span>
                    </div>
-                   <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('270deg 85deg 105%'); }} className="text-blue-500 hover:text-blue-600 p-1 font-semibold text-sm">
+                   <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('-90deg 85deg 105%'); }} className="text-blue-500 hover:text-blue-600 p-1 font-semibold text-sm">
                      Close
                    </button>
                  </div>
