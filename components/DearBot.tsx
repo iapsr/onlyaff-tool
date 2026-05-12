@@ -171,7 +171,7 @@ export default function DearBot() {
 
         {/* Walking Avatar Stage - Anchored to right side */}
         <div 
-          className={`absolute bottom-0 animate-walk-around ${isWalking ? '' : 'animation-pause'}`}
+          className={`absolute bottom-0 animate-patrol-x ${isWalking ? '' : 'animation-pause'}`}
           style={{ right: '5%' }}
         >
           <div 
@@ -242,36 +242,49 @@ export default function DearBot() {
               </div>
             )}
 
-            {/* 3D BGMI-style Avatar */}
+            {/* 3D BGMI-style Avatar Wrapper for Hover Scaling */}
             <div className={`relative w-[380px] h-[550px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'scale-110 -translate-y-4' : 'scale-100 translate-y-0'}`}>
-              {/* @ts-ignore */}
-              <model-viewer
-                src="https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb"
-                autoplay
-                animation-name={animation}
-                shadow-intensity="2"
-                camera-orbit={orbit}
-                camera-target="0m 1.2m 0m"
-                disable-zoom
-                disable-pan
-                style={{ width: '100%', height: '100%', background: 'transparent' }}
-              >
-              {/* @ts-ignore */}
-              </model-viewer>
+              {/* Inner container specifically decoupled for the 3D rotation patrol turns */}
+              <div className={`w-full h-full animate-patrol-turn ${isWalking ? '' : 'animation-pause'}`}>
+                {/* @ts-ignore */}
+                <model-viewer
+                  src="https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb"
+                  autoplay
+                  animation-name={animation}
+                  shadow-intensity="2"
+                  camera-orbit={orbit}
+                  camera-target="0m 1.2m 0m"
+                  disable-zoom
+                  disable-pan
+                  style={{ width: '100%', height: '100%', background: 'transparent' }}
+                >
+                {/* @ts-ignore */}
+                </model-viewer>
+              </div>
             </div>
           </div>
         </div>
 
         <style dangerouslySetInnerHTML={{__html: `
-          @keyframes walk-around {
-            0% { transform: translateX(5vw) rotateY(180deg); }
-            45% { transform: translateX(-85vw) rotateY(180deg); }
-            50% { transform: translateX(-85vw) rotateY(0deg); }
-            95% { transform: translateX(5vw) rotateY(0deg); }
-            100% { transform: translateX(5vw) rotateY(180deg); }
+          @keyframes patrol-x {
+            0% { transform: translateX(5vw); }
+            45% { transform: translateX(-85vw); }
+            50% { transform: translateX(-85vw); }
+            95% { transform: translateX(5vw); }
+            100% { transform: translateX(5vw); }
           }
-          .animate-walk-around {
-            animation: walk-around 30s ease-in-out infinite;
+          @keyframes patrol-turn {
+            0% { transform: rotateY(180deg); }
+            45% { transform: rotateY(180deg); }
+            50% { transform: rotateY(0deg); }
+            95% { transform: rotateY(0deg); }
+            100% { transform: rotateY(180deg); }
+          }
+          .animate-patrol-x {
+            animation: patrol-x 30s ease-in-out infinite;
+          }
+          .animate-patrol-turn {
+            animation: patrol-turn 30s ease-in-out infinite;
           }
           .animation-pause {
             animation-play-state: paused !important;
