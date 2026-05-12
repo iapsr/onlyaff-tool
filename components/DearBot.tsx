@@ -15,14 +15,11 @@ export default function DearBot() {
   const [chat, setChat] = useState<ChatMessage[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   
-  // Interaction states
   const [isHovered, setIsHovered] = useState(false);
   const [animation, setAnimation] = useState('Run');
-  
-  // Base orbit for running is -90deg (facing right). CSS scaleX(-1) handles the flip when running left.
-  // 180deg faces front.
   const [orbit, setOrbit] = useState('-90deg 85deg 105%');
   const characterRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,13 +29,11 @@ export default function DearBot() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!characterRef.current) return;
       
-      // If we are NOT hovering or interacting, keep him facing the direction of travel
       if (!isHovered && !isOpen) {
         setOrbit('-90deg 85deg 105%');
         return;
       }
 
-      // If we ARE interacting, he should face the FRONT (180deg) and track the cursor slightly.
       const rect = characterRef.current.getBoundingClientRect();
       const charX = rect.left + rect.width / 2;
       const charY = rect.top + rect.height / 2;
@@ -46,22 +41,26 @@ export default function DearBot() {
       const deltaX = e.clientX - charX;
       const deltaY = e.clientY - charY;
       
-      // Base is 180deg (facing front).
       const maxRotation = 45; 
       const rotationY = 180 - (deltaX / window.innerWidth) * maxRotation * 2;
-      
       const pitch = 85 + (deltaY / window.innerHeight) * 20;
 
       setOrbit(`${rotationY}deg ${pitch}deg 105%`);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-
     return () => {
       clearTimeout(timer);
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [isHovered, isOpen]);
+
+  // Auto-scroll to bottom when chat updates
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chat, isThinking, isOpen]);
 
   const handleInteraction = () => {
     if (!isOpen) {
@@ -91,18 +90,18 @@ export default function DearBot() {
   const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
       return (
-        <div className="flex justify-end mb-4 w-full">
-          <div className="max-w-[85%] bg-[#0A7CFF] text-white px-4 py-2.5 text-[14px] font-medium leading-relaxed rounded-[20px] rounded-br-[4px] shadow-sm">
+        <div className="flex justify-end w-full animate-in slide-in-from-bottom-2 duration-300">
+          <div className="relative max-w-[85%] bg-[#BEFF00]/90 backdrop-blur-xl border border-[#BEFF00]/50 text-black px-5 py-3.5 text-[14px] font-medium leading-relaxed rounded-[24px] rounded-br-[6px] shadow-[0_10px_40px_rgba(190,255,0,0.2)]">
             {msg.content}
           </div>
         </div>
       );
     }
     return (
-      <div className="flex justify-start mb-4 w-full">
-        <div className="max-w-[85%] bg-[#E9E9EB] text-black px-4 py-2.5 text-[14px] font-medium leading-relaxed rounded-[20px] rounded-bl-[4px] shadow-sm">
-          <span className="font-bold block mb-0.5 opacity-80 text-xs">Dear</span>
-          {msg.content.replace(/\*\*Dear\*\*/g, '')}
+      <div className="flex justify-start w-full animate-in slide-in-from-bottom-2 duration-300">
+        <div className="relative max-w-[85%] bg-white/10 backdrop-blur-2xl border border-white/20 text-white px-5 py-3.5 text-[14px] font-medium leading-relaxed rounded-[24px] rounded-bl-[6px] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+          <span className="font-black block mb-1 text-[#BEFF00] drop-shadow-md text-xs tracking-wider uppercase">Dear</span>
+          <span dangerouslySetInnerHTML={{ __html: msg.content.replace(/\bDear\b/gi, '<strong class="font-black text-[#BEFF00]">Dear</strong>').replace(/\*\*/g, '') }}></span>
         </div>
       </div>
     );
@@ -116,6 +115,12 @@ export default function DearBot() {
       
       <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
         
+        {/* Full-screen Glass Blur when chat is open */}
+        <div 
+          className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-700 pointer-events-auto ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          onClick={() => { setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('-90deg 85deg 105%'); }}
+        />
+
         {/* Walking Avatar Stage */}
         <div 
           className={`absolute bottom-0 ${isHovered || isOpen ? 'animation-pause' : 'animate-walk-around'}`}
@@ -126,88 +131,76 @@ export default function DearBot() {
             className="relative flex flex-col items-center pointer-events-auto cursor-crosshair group"
             onMouseEnter={() => {
               setIsHovered(true);
-              setAnimation('Idle'); // Stop running, transition to Idle
-              setOrbit('180deg 85deg 105%'); // Face front instantly
+              setAnimation('Idle'); 
+              setOrbit('180deg 85deg 105%'); 
             }}
             onMouseLeave={() => {
               if (!isOpen) {
                 setIsHovered(false);
                 setAnimation('Run');
-                setOrbit('-90deg 85deg 105%'); // Return to running direction
+                setOrbit('-90deg 85deg 105%'); 
               }
             }}
             onClick={handleInteraction}
           >
-            {/* Auto-popup when hovered but chat not locked open */}
+            {/* Auto-popup hover bubble (Glassy) */}
             {!isOpen && isHovered && (
-              <div className="absolute -top-16 bg-white/90 backdrop-blur-md text-black p-4 rounded-2xl rounded-br-[4px] shadow-2xl w-[280px] animate-in zoom-in duration-200 z-10 border border-[#BEFF00]">
-                <p className="text-sm font-bold leading-snug">
-                  Hi My Name is <span className="font-black">Dear</span>, if you are AdTech professional than I am your assistant?
+              <div className="absolute -top-4 bg-white/10 backdrop-blur-xl text-white p-4 rounded-[24px] rounded-br-[6px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-[300px] animate-in zoom-in duration-200 z-10 border border-white/20">
+                <p className="text-sm font-medium leading-relaxed">
+                  Hi My Name is <span className="font-black text-[#BEFF00]">Dear</span>, if you are AdTech professional than I am your assistant?
                 </p>
-                <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white/90 border-b border-r border-[#BEFF00] transform rotate-45"></div>
               </div>
             )}
 
-            {/* Expanding Chat Interface attached to the Avatar (iPhone style) */}
+            {/* Floating Glass Chat Bubbles */}
             {isOpen && (
-              <div className="absolute -top-[360px] bg-[#F3F3F3] shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-[32px] w-[340px] h-[450px] flex flex-col z-20 overflow-hidden transform transition-all duration-500 scale-100 border-4 border-white">
-                 {/* Header */}
-                 <div className="px-5 py-3 bg-[#F9F9F9] flex justify-between items-center border-b border-gray-200 backdrop-blur-md">
-                   <div className="flex flex-col">
-                     <span className="text-[15px] font-bold text-black flex items-center gap-1.5">
-                       Dear
-                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                     </span>
-                     <span className="text-[11px] text-gray-500 font-medium">AdTech Specialist</span>
-                   </div>
-                   <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('-90deg 85deg 105%'); }} className="text-blue-500 hover:text-blue-600 p-1 font-semibold text-sm">
-                     Close
-                   </button>
-                 </div>
+              <div className="absolute bottom-[400px] w-[400px] flex flex-col z-20 pointer-events-auto">
                  
-                 {/* Chat History */}
-                 <div className="flex-1 overflow-y-auto p-4 flex flex-col custom-scrollbar bg-white">
-                    {chat.map((msg, i) => (
-                      <React.Fragment key={i}>
-                        {renderMessage(msg)}
-                      </React.Fragment>
-                    ))}
-                    {isThinking && (
-                      <div className="flex justify-start mb-4 w-full">
-                        <div className="bg-[#E9E9EB] px-4 py-3 rounded-[20px] rounded-bl-[4px] shadow-sm flex gap-1.5 items-center">
-                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                 {/* Chat History Container (No solid background) */}
+                 <div ref={chatContainerRef} className="max-h-[50vh] overflow-y-auto px-4 pb-2 flex flex-col gap-4 custom-scrollbar">
+                    <div className="flex flex-col justify-end min-h-full gap-4">
+                      {chat.map((msg, i) => (
+                        <React.Fragment key={i}>
+                          {renderMessage(msg)}
+                        </React.Fragment>
+                      ))}
+                      {isThinking && (
+                        <div className="flex justify-start w-full animate-in fade-in duration-300">
+                          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 px-5 py-4 rounded-[24px] rounded-bl-[6px] shadow-lg flex gap-1.5 items-center">
+                            <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce"></span>
+                            <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                            <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                  </div>
 
-                 {/* Input (iPhone iMessage style) */}
-                 <form onSubmit={handleSubmit} className="p-3 bg-[#F9F9F9] border-t border-gray-200">
-                    <div className="relative flex items-center">
+                 {/* Input Pill (Glassy) */}
+                 <form onSubmit={handleSubmit} className="px-4 pt-2 pb-6">
+                    <div className="relative flex items-center bg-black/40 backdrop-blur-2xl border border-white/20 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.6)] overflow-hidden transition-all focus-within:border-[#BEFF00]/50 focus-within:bg-black/60">
                       <input 
                         type="text" 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="iMessage" 
-                        className="w-full bg-white border border-gray-300 rounded-full py-2.5 pl-4 pr-10 text-[14px] text-black placeholder:text-gray-400 focus:outline-none focus:border-blue-500 transition-colors shadow-inner"
+                        placeholder="Command Dear..." 
+                        className="w-full bg-transparent py-4 pl-6 pr-14 text-[15px] text-white placeholder:text-gray-400 focus:outline-none"
                         disabled={isThinking}
                         autoFocus
                       />
                       <button 
                         type="submit" 
                         disabled={!input.trim() || isThinking}
-                        className="absolute right-1 w-8 h-8 rounded-full bg-[#0A7CFF] text-white flex items-center justify-center disabled:bg-gray-300 transition-colors"
+                        className="absolute right-2 w-10 h-10 rounded-full bg-[#BEFF00] text-black flex items-center justify-center disabled:bg-white/10 disabled:text-white/30 transition-colors shadow-lg hover:bg-[#a5e000]"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                       </button>
                     </div>
                  </form>
               </div>
             )}
 
-            {/* 3D BGMI-style Avatar (Larger & 3D Hovering) */}
+            {/* 3D BGMI-style Avatar */}
             <div className={`relative w-[380px] h-[550px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'animate-hover-float scale-110' : 'scale-100 translate-y-0'}`}>
               {/* @ts-ignore */}
               <model-viewer
@@ -252,14 +245,7 @@ export default function DearBot() {
           }
 
           .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #D1D1D6;
-            border-radius: 4px;
+            width: 0px; /* Hide scrollbar for cleaner look */
           }
         `}} />
       </div>
