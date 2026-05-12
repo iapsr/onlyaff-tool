@@ -18,7 +18,10 @@ export default function DearBot() {
   // Interaction states
   const [isHovered, setIsHovered] = useState(false);
   const [animation, setAnimation] = useState('Run');
-  const [orbit, setOrbit] = useState('-90deg 85deg 105%');
+  
+  // Base orbit for running is 90deg (facing right). CSS scaleX(-1) handles the flip when running left.
+  // 0deg faces front.
+  const [orbit, setOrbit] = useState('90deg 85deg 105%');
   const characterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,20 +31,28 @@ export default function DearBot() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!characterRef.current) return;
+      
+      // If we are NOT hovering or interacting, keep him facing the direction of travel (90deg)
+      // The CSS animation uses scaleX(-1) to flip the entire container when he runs the other way.
+      if (!isHovered && !isOpen) {
+        setOrbit('90deg 85deg 105%');
+        return;
+      }
+
+      // If we ARE interacting, he should face the FRONT (0deg) and track the cursor slightly.
       const rect = characterRef.current.getBoundingClientRect();
       const charX = rect.left + rect.width / 2;
       const charY = rect.top + rect.height / 2;
       
-      // Calculate cursor position relative to character
       const deltaX = e.clientX - charX;
       const deltaY = e.clientY - charY;
       
-      // Map deltaX to a rotation angle (simulate eye contact by rotating the model towards cursor)
-      // Base is -90deg (facing forward relative to movement)
-      const maxRotation = 45; // Max degrees to turn head/body
-      const rotationY = -90 + (deltaX / window.innerWidth) * maxRotation * 2;
+      // Base is 0deg (facing front). We rotate slightly left/right based on cursor
+      // NOTE: If the container happens to be flipped via scaleX(-1) because the animation paused while moving left, 
+      // the mouse deltaX logic naturally inverts, which perfectly matches the visual flip!
+      const maxRotation = 45; 
+      const rotationY = (deltaX / window.innerWidth) * maxRotation * 2;
       
-      // Pitch tracking (up/down)
       const pitch = 85 + (deltaY / window.innerHeight) * 20;
 
       setOrbit(`${rotationY}deg ${pitch}deg 105%`);
@@ -53,7 +64,7 @@ export default function DearBot() {
       clearTimeout(timer);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, []);
+  }, [isHovered, isOpen]);
 
   const handleInteraction = () => {
     if (!isOpen) {
@@ -82,11 +93,20 @@ export default function DearBot() {
 
   const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
-      return <div className="text-right text-xs bg-white/10 p-3 rounded-xl rounded-tr-sm ml-8 text-white shadow-md font-medium">{msg.content}</div>;
+      return (
+        <div className="flex justify-end mb-4 w-full">
+          <div className="max-w-[85%] bg-[#0A7CFF] text-white px-4 py-2.5 text-[13px] font-medium leading-relaxed rounded-[20px] rounded-br-[4px] shadow-sm">
+            {msg.content}
+          </div>
+        </div>
+      );
     }
     return (
-      <div className="text-left text-xs bg-[#BEFF00]/10 border border-[#BEFF00]/30 p-3 rounded-xl rounded-tl-sm mr-8 text-white leading-relaxed shadow-lg shadow-[#BEFF00]/5">
-        <span className="font-black text-[#BEFF00]">Dear</span>: {msg.content.replace(/\*\*Dear\*\*/g, '')}
+      <div className="flex justify-start mb-4 w-full">
+        <div className="max-w-[85%] bg-[#E9E9EB] text-black px-4 py-2.5 text-[13px] font-medium leading-relaxed rounded-[20px] rounded-bl-[4px] shadow-sm">
+          <span className="font-bold block mb-0.5 opacity-80 text-xs">Dear</span>
+          {msg.content.replace(/\*\*Dear\*\*/g, '')}
+        </div>
       </div>
     );
   };
@@ -110,74 +130,80 @@ export default function DearBot() {
             onMouseEnter={() => {
               setIsHovered(true);
               setAnimation('Idle');
+              // Instantly face front when hovered
+              setOrbit('0deg 85deg 105%');
             }}
             onMouseLeave={() => {
               if (!isOpen) {
                 setIsHovered(false);
                 setAnimation('Run');
+                // Face running direction
+                setOrbit('90deg 85deg 105%');
               }
             }}
             onClick={handleInteraction}
           >
             {/* Auto-popup when walking (and not open) */}
             {!isOpen && chat.length === 0 && (
-              <div className="absolute -top-16 bg-white/90 backdrop-blur-md text-black p-4 rounded-2xl rounded-br-sm shadow-2xl w-max opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 border border-[#BEFF00]">
+              <div className="absolute -top-16 bg-white/90 backdrop-blur-md text-black p-4 rounded-2xl rounded-br-[4px] shadow-2xl w-max opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 border border-[#BEFF00]">
                 <p className="text-sm font-bold leading-snug">Click to command <span className="font-black">Dear</span></p>
                 <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white/90 border-b border-r border-[#BEFF00] transform rotate-45"></div>
               </div>
             )}
 
-            {/* Expanding Chat Interface attached to the Avatar */}
+            {/* Expanding Chat Interface attached to the Avatar (iPhone style) */}
             {isOpen && (
-              <div className="absolute -top-[340px] bg-gradient-to-b from-[#1a1a1a] to-[#050505] border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8),_0_0_40px_rgba(190,255,0,0.15)] rounded-3xl w-[320px] h-[400px] flex flex-col z-20 overflow-hidden transform transition-all duration-500 scale-100">
+              <div className="absolute -top-[360px] bg-[#F3F3F3] shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-[32px] w-[320px] h-[420px] flex flex-col z-20 overflow-hidden transform transition-all duration-500 scale-100 border-4 border-white">
                  {/* Header */}
-                 <div className="p-4 bg-black/50 flex justify-between items-center border-b border-white/10">
-                   <div className="flex items-center gap-2">
-                     <div className="w-2 h-2 rounded-full bg-[#BEFF00] animate-pulse"></div>
-                     <span className="text-[10px] font-black tracking-widest text-[#BEFF00] uppercase">Active Uplink</span>
+                 <div className="px-5 py-3 bg-[#F9F9F9] flex justify-between items-center border-b border-gray-200 backdrop-blur-md">
+                   <div className="flex flex-col">
+                     <span className="text-[14px] font-bold text-black flex items-center gap-1.5">
+                       Dear
+                       <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                     </span>
+                     <span className="text-[10px] text-gray-500 font-medium">AdTech Specialist</span>
                    </div>
-                   <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); setIsHovered(false); setAnimation('Run'); }} className="text-white/50 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
-                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                   <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); setIsHovered(false); setAnimation('Run'); setOrbit('90deg 85deg 105%'); }} className="text-blue-500 hover:text-blue-600 p-1 font-semibold text-sm">
+                     Close
                    </button>
                  </div>
                  
                  {/* Chat History */}
-                 <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto p-4 flex flex-col custom-scrollbar bg-white">
                     {chat.map((msg, i) => (
                       <React.Fragment key={i}>
                         {renderMessage(msg)}
                       </React.Fragment>
                     ))}
                     {isThinking && (
-                      <div className="text-left text-xs bg-[#BEFF00]/5 border border-[#BEFF00]/20 p-3 rounded-xl rounded-tl-sm mr-8 text-[#BEFF00] flex items-center gap-3 w-max">
-                        <span className="font-black text-sm">Dear</span> is analyzing
-                        <span className="flex gap-1.5 mt-1">
-                          <span className="w-1.5 h-1.5 bg-[#BEFF00] rounded-full animate-bounce"></span>
-                          <span className="w-1.5 h-1.5 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                          <span className="w-1.5 h-1.5 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
-                        </span>
+                      <div className="flex justify-start mb-4 w-full">
+                        <div className="bg-[#E9E9EB] px-4 py-3 rounded-[20px] rounded-bl-[4px] shadow-sm flex gap-1.5 items-center">
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                        </div>
                       </div>
                     )}
                  </div>
 
-                 {/* Input */}
-                 <form onSubmit={handleSubmit} className="p-3 border-t border-white/10 bg-[#0a0a0a]">
+                 {/* Input (iPhone iMessage style) */}
+                 <form onSubmit={handleSubmit} className="p-3 bg-[#F9F9F9] border-t border-gray-200">
                     <div className="relative flex items-center">
                       <input 
                         type="text" 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Give Dear a command..." 
-                        className="w-full bg-black border border-white/20 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#BEFF00]"
+                        placeholder="iMessage" 
+                        className="w-full bg-white border border-gray-300 rounded-full py-2 pl-4 pr-10 text-[14px] text-black placeholder:text-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
                         disabled={isThinking}
                         autoFocus
                       />
                       <button 
                         type="submit" 
                         disabled={!input.trim() || isThinking}
-                        className="absolute right-1.5 w-8 h-8 rounded-lg bg-[#BEFF00] text-black flex items-center justify-center disabled:opacity-50 transition-all hover:bg-[#a5e000]"
+                        className="absolute right-1 w-7 h-7 rounded-full bg-[#0A7CFF] text-white flex items-center justify-center disabled:bg-gray-300 transition-colors"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                       </button>
                     </div>
                  </form>
@@ -220,13 +246,13 @@ export default function DearBot() {
           }
 
           .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(190, 255, 0, 0.2);
+            background: #D1D1D6;
             border-radius: 4px;
           }
         `}} />
