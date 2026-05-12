@@ -166,10 +166,10 @@ export default function DearBot() {
           onClick={() => { setIsOpen(false); setIsHovered(false); }}
         />
 
-        {/* Walking Avatar Stage */}
+        {/* Walking Avatar Stage - Anchored to right side */}
         <div 
           className={`absolute bottom-0 ${isWalking ? 'animate-walk-around' : 'animation-pause'}`}
-          style={{ left: '0%' }}
+          style={{ right: '5%' }}
         >
           <div 
             ref={characterRef}
@@ -188,9 +188,9 @@ export default function DearBot() {
               </div>
             )}
 
-            {/* Floating Chat Interface positioned near the head */}
+            {/* Floating Chat Interface positioned near the head, anchored to the left of the avatar to prevent right-overflow */}
             {isOpen && (
-              <div className="absolute bottom-[480px] w-[420px] flex flex-col z-20 pointer-events-auto">
+              <div className="absolute bottom-[480px] right-0 w-[420px] flex flex-col z-20 pointer-events-auto">
                  
                  {/* Chat History Container (Flexible width wrapping) */}
                  <div ref={chatContainerRef} className="max-h-[55vh] overflow-y-auto px-2 pb-4 flex flex-col gap-6 custom-scrollbar">
@@ -258,14 +258,14 @@ export default function DearBot() {
 
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes walk-around {
-            0% { transform: translateX(-100%) scaleX(1); }
-            45% { transform: translateX(85vw) scaleX(1); }
-            50% { transform: translateX(85vw) scaleX(-1); }
-            95% { transform: translateX(-20vw) scaleX(-1); }
-            100% { transform: translateX(-100%) scaleX(1); }
+            0% { transform: translateX(0) scaleX(-1); }
+            45% { transform: translateX(-35vw) scaleX(-1); }
+            50% { transform: translateX(-35vw) scaleX(1); }
+            95% { transform: translateX(0) scaleX(1); }
+            100% { transform: translateX(0) scaleX(-1); }
           }
           .animate-walk-around {
-            animation: walk-around 30s linear infinite;
+            animation: walk-around 15s linear infinite;
           }
           .animation-pause {
             animation-play-state: paused !important;

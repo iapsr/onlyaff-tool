@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
     }
 
-    const systemPrompt = {
+    const systemPrompt: ChatCompletionMessageParam = {
       role: 'system',
       content: `You are Dear, a smart, witty, and highly experienced AdTech professional with over 10 years of experience in affiliate marketing (CPI, CPL, CPA, CPS, CPD) and mobile tracking (expert in all MMPs like AppsFlyer, Adjust, Singular, Kochava, Branch). 
       You act as the premier AI assistant on the OnlyAff platform. Your tone is confident, premium, slightly witty like a top-tier executive, and always deeply knowledgeable. 
@@ -21,12 +22,14 @@ export async function POST(req: Request) {
       Always refer to yourself as "Dear". If the user asks for help with anything related to mobile marketing, tracking links, or campaign setups, provide elite expert guidance.`
     };
 
+    const formattedMessages: ChatCompletionMessageParam[] = messages.map((m: any) => ({
+      role: (m.role === 'dear' ? 'assistant' : 'user') as 'assistant' | 'user',
+      content: m.content
+    }));
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [systemPrompt, ...messages.map(m => ({
-        role: m.role === 'dear' ? 'assistant' : 'user',
-        content: m.content
-      }))],
+      messages: [systemPrompt, ...formattedMessages],
       temperature: 0.7,
       max_tokens: 500,
     });
