@@ -135,16 +135,16 @@ export default function DearBot() {
   const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
       return (
-        <div className="flex justify-end w-full animate-in slide-in-from-bottom-2 duration-500">
-          <div className="w-max max-w-[85%] bg-[#BEFF00] text-black px-6 py-3.5 text-[15px] font-medium leading-relaxed rounded-[24px] shadow-[0_0_30px_rgba(190,255,0,0.15)] animate-liquid">
+        <div className="flex justify-end w-full animate-in slide-in-from-bottom-4 duration-500">
+          <div className="w-fit max-w-[95%] bg-[#BEFF00] text-black px-6 py-3.5 text-[15px] font-medium leading-relaxed rounded-[24px] shadow-[0_0_40px_rgba(190,255,0,0.2)] animate-liquid transition-all hover:scale-[1.02]">
             {msg.content}
           </div>
         </div>
       );
     }
     return (
-      <div className="flex justify-start w-full animate-in slide-in-from-bottom-2 duration-500">
-        <div className="w-max max-w-[85%] bg-[#1E1E1E] border border-[#333333] text-white px-6 py-4 text-[15px] leading-relaxed rounded-[24px] shadow-2xl">
+      <div className="flex justify-start w-full animate-in slide-in-from-bottom-4 duration-500">
+        <div className="w-fit max-w-[95%] bg-[#1E1E1E] border border-[#333333] text-white px-6 py-4 text-[15px] leading-relaxed rounded-[24px] shadow-2xl transition-all hover:scale-[1.01]">
           <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
           <span dangerouslySetInnerHTML={{ __html: msg.content.replace(/\bDear\b/gi, '<strong class="font-black text-[#BEFF00]">Dear</strong>').replace(/\*\*/g, '') }}></span>
         </div>
@@ -191,13 +191,13 @@ export default function DearBot() {
             {/* Floating Chat Interface positioned near the head, mathematically constrained to viewport height */}
             {isOpen && (
               <div 
-                className="absolute bottom-[400px] right-0 w-[420px] flex flex-col z-20 pointer-events-auto"
+                className="absolute bottom-[400px] right-0 w-[90vw] max-w-[600px] flex flex-col z-20 pointer-events-auto"
                 style={{ maxHeight: 'calc(100vh - 420px)' }}
               >
                  
-                 {/* Chat History Container (Properly scrollable with flex-shrink) */}
-                 <div ref={chatContainerRef} className="overflow-y-auto min-h-0 px-2 pb-4 flex flex-col custom-scrollbar">
-                    <div className="flex flex-col justify-end min-h-full gap-5">
+                 {/* Chat History Container (Properly scrollable with flex-1 and mt-auto) */}
+                 <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col custom-scrollbar">
+                    <div className="mt-auto flex flex-col gap-6">
                       {chat.map((msg, i) => (
                         <React.Fragment key={i}>
                           {renderMessage(msg)}
@@ -205,7 +205,7 @@ export default function DearBot() {
                       ))}
                       {isThinking && (
                         <div className="flex justify-start w-full animate-in fade-in duration-500">
-                          <div className="w-max bg-[#1E1E1E] border border-[#333333] px-6 py-5 rounded-[24px] shadow-2xl flex gap-2 items-center">
+                          <div className="w-fit bg-[#1E1E1E] border border-[#333333] px-6 py-5 rounded-[24px] shadow-2xl flex gap-2 items-center">
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce"></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
@@ -216,7 +216,7 @@ export default function DearBot() {
                  </div>
 
                  {/* Dark Input Pill */}
-                 <form onSubmit={handleSubmit} className="px-2 pt-2 pb-2 shrink-0">
+                 <form onSubmit={handleSubmit} className="px-4 pt-2 pb-2 shrink-0">
                     <div className="relative flex items-center bg-[#050505] border border-[#2A2A2A] rounded-full shadow-2xl overflow-hidden transition-all focus-within:border-[#444444]">
                       <input 
                         type="text" 
