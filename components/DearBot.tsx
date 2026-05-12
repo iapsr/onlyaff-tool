@@ -100,19 +100,36 @@ export default function DearBot() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isThinking) return;
 
     const userMessage = input.trim();
     setInput('');
-    setChat(prev => [...prev, { role: 'user', content: userMessage }]);
+    const newChat: ChatMessage[] = [...chat, { role: 'user', content: userMessage }];
+    setChat(newChat);
     setIsThinking(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newChat }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch');
+      }
+
+      setChat(prev => [...prev, { role: 'dear', content: data.reply }]);
+    } catch (error) {
+      console.error(error);
+      setChat(prev => [...prev, { role: 'dear', content: "My connection to the mainframe was interrupted. Please try again." }]);
+    } finally {
       setIsThinking(false);
-      setChat(prev => [...prev, { role: 'dear', content: "Request acknowledged. I will process these parameters immediately." }]);
-    }, 2500);
+    }
   };
 
   const renderMessage = (msg: ChatMessage) => {
