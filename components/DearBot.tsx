@@ -188,12 +188,15 @@ export default function DearBot() {
               </div>
             )}
 
-            {/* Floating Chat Interface positioned near the head, anchored to the left of the avatar to prevent right-overflow */}
+            {/* Floating Chat Interface positioned near the head, mathematically constrained to viewport height */}
             {isOpen && (
-              <div className="absolute bottom-[480px] right-0 w-[420px] flex flex-col z-20 pointer-events-auto">
+              <div 
+                className="absolute bottom-[400px] right-0 w-[420px] flex flex-col z-20 pointer-events-auto"
+                style={{ maxHeight: 'calc(100vh - 420px)' }}
+              >
                  
-                 {/* Chat History Container (Flexible width wrapping) */}
-                 <div ref={chatContainerRef} className="max-h-[55vh] overflow-y-auto px-2 pb-4 flex flex-col gap-6 custom-scrollbar">
+                 {/* Chat History Container (Properly scrollable with flex-shrink) */}
+                 <div ref={chatContainerRef} className="overflow-y-auto min-h-0 px-2 pb-4 flex flex-col custom-scrollbar">
                     <div className="flex flex-col justify-end min-h-full gap-5">
                       {chat.map((msg, i) => (
                         <React.Fragment key={i}>
@@ -213,7 +216,7 @@ export default function DearBot() {
                  </div>
 
                  {/* Dark Input Pill */}
-                 <form onSubmit={handleSubmit} className="px-2 pt-2 pb-6">
+                 <form onSubmit={handleSubmit} className="px-2 pt-2 pb-2 shrink-0">
                     <div className="relative flex items-center bg-[#050505] border border-[#2A2A2A] rounded-full shadow-2xl overflow-hidden transition-all focus-within:border-[#444444]">
                       <input 
                         type="text" 
@@ -281,8 +284,19 @@ export default function DearBot() {
             animation: liquid-pulse 2.5s infinite ease-out;
           }
 
+          /* Premium Scrollbar */
           .custom-scrollbar::-webkit-scrollbar {
-            width: 0px; 
+            width: 4px; 
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(190, 255, 0, 0.2);
+            border-radius: 10px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(190, 255, 0, 0.5);
           }
         `}} />
       </div>
