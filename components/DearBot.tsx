@@ -58,12 +58,13 @@ export default function DearBot() {
           )}
 
           {/* 3D Human Avatar Image */}
-          <div className="relative w-[280px] h-[380px] drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] hover:scale-105 transition-transform duration-300">
+          <div className="relative w-[200px] h-[340px] rounded-full overflow-hidden border-4 border-white/20 hover:border-[#BEFF00] shadow-[0_20px_50px_rgba(0,0,0,0.8)] hover:shadow-[0_0_40px_rgba(190,255,0,0.4)] transition-all duration-300 bg-white/5 backdrop-blur-xl">
+             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
              <Image 
                src="/avatar.png"
                alt="Dear the 3D Avatar"
                fill
-               className="object-contain"
+               className="object-cover"
                priority
              />
           </div>
