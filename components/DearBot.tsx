@@ -135,18 +135,21 @@ export default function DearBot() {
   const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
       return (
-        <div className="flex justify-end w-full animate-in slide-in-from-bottom-4 duration-500">
-          <div className="w-fit max-w-[95%] bg-[#BEFF00] text-black px-6 py-3.5 text-[15px] font-medium leading-relaxed rounded-[24px] shadow-[0_0_40px_rgba(190,255,0,0.2)] animate-liquid transition-all hover:scale-[1.02]">
+        <div className="flex justify-end w-full">
+          <div className="w-fit max-w-[95%] bg-[#BEFF00] text-black px-6 py-3.5 text-[15px] font-medium leading-relaxed rounded-[24px] rounded-br-[6px] shadow-[0_0_40px_rgba(190,255,0,0.2)] animate-imessage-user">
             {msg.content}
           </div>
         </div>
       );
     }
     return (
-      <div className="flex justify-start w-full animate-in slide-in-from-bottom-4 duration-500">
-        <div className="w-fit max-w-[95%] bg-[#1E1E1E] border border-[#333333] text-white px-6 py-4 text-[15px] leading-relaxed rounded-[24px] shadow-2xl transition-all hover:scale-[1.01]">
-          <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
-          <span dangerouslySetInnerHTML={{ __html: msg.content.replace(/\bDear\b/gi, '<strong class="font-black text-[#BEFF00]">Dear</strong>').replace(/\*\*/g, '') }}></span>
+      <div className="flex justify-start w-full">
+        <div className="w-fit max-w-[95%] bg-[#1E1E1E] border border-[#333333] text-white px-6 py-4 text-[15px] leading-relaxed rounded-[24px] rounded-bl-[6px] shadow-2xl animate-imessage-bot">
+          <span className="font-bold block mb-3 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
+          <div 
+            className="dear-html-content space-y-3"
+            dangerouslySetInnerHTML={{ __html: msg.content.replace(/\bDear\b/gi, '<strong class="font-black text-[#BEFF00]">Dear</strong>') }}
+          ></div>
         </div>
       </div>
     );
@@ -204,8 +207,8 @@ export default function DearBot() {
                         </React.Fragment>
                       ))}
                       {isThinking && (
-                        <div className="flex justify-start w-full animate-in fade-in duration-500">
-                          <div className="w-fit bg-[#1E1E1E] border border-[#333333] px-6 py-5 rounded-[24px] shadow-2xl flex gap-2 items-center">
+                        <div className="flex justify-start w-full animate-imessage-bot">
+                          <div className="w-fit bg-[#1E1E1E] border border-[#333333] px-6 py-5 rounded-[24px] rounded-bl-[6px] shadow-2xl flex gap-2 items-center">
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce"></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
                             <span className="w-2 h-2 bg-[#BEFF00] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
@@ -261,27 +264,43 @@ export default function DearBot() {
 
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes walk-around {
-            0% { transform: translateX(0) scaleX(-1); }
-            45% { transform: translateX(-35vw) scaleX(-1); }
-            50% { transform: translateX(-35vw) scaleX(1); }
-            95% { transform: translateX(0) scaleX(1); }
-            100% { transform: translateX(0) scaleX(-1); }
+            0% { transform: translateX(5vw) rotateY(180deg); }
+            45% { transform: translateX(-85vw) rotateY(180deg); }
+            50% { transform: translateX(-85vw) rotateY(0deg); }
+            95% { transform: translateX(5vw) rotateY(0deg); }
+            100% { transform: translateX(5vw) rotateY(180deg); }
           }
           .animate-walk-around {
-            animation: walk-around 15s linear infinite;
+            animation: walk-around 30s ease-in-out infinite;
           }
           .animation-pause {
             animation-play-state: paused !important;
           }
           
-          /* Water/Liquid Pulse Glow Animation */
-          @keyframes liquid-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(190,255,0,0.5); }
-            70% { box-shadow: 0 0 0 20px rgba(190,255,0,0); }
-            100% { box-shadow: 0 0 0 0 rgba(190,255,0,0); }
+          /* Apple iMessage Spring Wave Animation */
+          @keyframes imessage-spring {
+            0% { transform: scale(0.6) translateY(20px); opacity: 0; }
+            50% { transform: scale(1.05) translateY(-5px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
           }
-          .animate-liquid {
-            animation: liquid-pulse 2.5s infinite ease-out;
+          .animate-imessage-user {
+            animation: imessage-spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform-origin: bottom right;
+          }
+          .animate-imessage-bot {
+            animation: imessage-spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform-origin: bottom left;
+          }
+
+          /* HTML Formatting specific to Dear's responses */
+          .dear-html-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+          }
+          .dear-html-content li {
+            margin-bottom: 0.25rem;
           }
 
           /* Premium Scrollbar */
