@@ -882,32 +882,14 @@ export default function CampaignBriefBuilder() {
                  </p>
                  
                  {errorModal.isLimit && (
-                    <form onSubmit={async (e) => {
-                       e.preventDefault();
-                       setAuthLoading(true);
-                       await signIn("email", { email: authEmail, callbackUrl: "/" });
-                    }} className="space-y-4 max-w-sm mx-auto">
-                       <div className="space-y-1.5">
-                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Email Address</label>
-                         <input 
-                           type="email"
-                           required
-                           value={authEmail}
-                           onChange={(e) => setAuthEmail(e.target.value)}
-                           placeholder="alan.turing@example.com"
-                           className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#BEFF00]/50 transition-all placeholder:text-gray-700"
-                         />
-                       </div>
-                       <button 
-                         type="submit"
-                         disabled={authLoading}
-                         className="w-full py-3 rounded-xl font-bold text-sm text-black bg-[#BEFF00] hover:bg-[#a5e000] transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                    <div className="flex justify-center">
+                       <a 
+                         href="/auth/signin"
+                         className="w-full max-w-xs py-3.5 rounded-xl font-extrabold text-sm text-black bg-[#BEFF00] hover:bg-[#a5e000] transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-lg shadow-[#BEFF00]/20"
                        >
-                         {authLoading ? (
-                           <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></span>
-                         ) : 'Send Magic Link'}
-                       </button>
-                    </form>
+                         Create Free Account
+                       </a>
+                    </div>
                  )}
                  
                  {!errorModal.isLimit && (

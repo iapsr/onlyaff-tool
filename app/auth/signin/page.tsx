@@ -11,11 +11,14 @@ function SignInContent() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [view, setView] = useState<'user' | 'admin'>('user');
   const [userMode, setUserMode] = useState<'signin' | 'signup'>('signin');
   const [show2FA, setShow2FA] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [registerError, setRegisterError] = useState("");
 
   useEffect(() => {
     if (searchParams.get("admin") === "true") {
@@ -28,12 +31,64 @@ function SignInContent() {
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      await signIn("email", { email, callbackUrl: "/auth/verify-request" });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+    setRegisterError("");
+
+    if (userMode === 'signup') {
+      if (password !== confirmPassword) {
+         setRegisterError("Passwords do not match");
+         setIsLoading(false);
+         return;
+      }
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error || "Registration failed");
+        }
+        
+        // Auto sign-in
+        const result = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+          callbackUrl,
+        });
+
+        if (result?.error) {
+           setRegisterError("Account created but failed to sign in automatically.");
+        } else {
+           window.location.href = callbackUrl;
+        }
+      } catch (err: any) {
+        setRegisterError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Sign In mode
+      try {
+        const result = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+          callbackUrl,
+        });
+
+        if (result?.error) {
+          setRegisterError("Invalid email or password");
+        } else {
+          window.location.href = callbackUrl;
+        }
+      } catch (err) {
+        setRegisterError("Authentication failed");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -109,14 +164,28 @@ function SignInContent() {
           </div>
         )}
 
-        {error && (
+        {(error || registerError) && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-4 rounded-xl mb-6 text-center font-bold">
-            {error === "CredentialsSignin" ? "Invalid email or password" : "Authentication failed. Please try again."}
+            {registerError || (error === "CredentialsSignin" ? "Invalid email or password" : "Authentication failed. Please try again.")}
           </div>
         )}
 
         <form onSubmit={view === 'admin' ? handleAdminLogin : handleUserLogin} className="space-y-4">
           
+          {view === 'user' && userMode === 'signup' && (
+            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Full Name</label>
+              <input 
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Alan Turing"
+                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-[#BEFF00]/50 transition-all placeholder:text-gray-700 font-medium"
+              />
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Email Address</label>
             <input 
@@ -129,14 +198,26 @@ function SignInContent() {
             />
           </div>
 
-          {view === 'admin' && (
+          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Password</label>
+            <input 
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-[#BEFF00]/50 transition-all placeholder:text-gray-700 font-medium"
+            />
+          </div>
+
+          {view === 'user' && userMode === 'signup' && (
             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Confirm Password</label>
               <input 
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-[#BEFF00]/50 transition-all placeholder:text-gray-700 font-medium"
               />
