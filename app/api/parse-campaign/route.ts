@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       if (totalUsed >= 3) {
         return NextResponse.json({ 
           error: 'Limit Reached', 
-          details: 'Guest limit reached (3 briefs). Please sign in with LinkedIn to unlock unlimited briefs.' 
+          details: 'Guest limit reached (3 briefs). Please create a free account to unlock unlimited briefs.' 
         }, { status: 403 });
       }
     }
@@ -50,7 +50,8 @@ export async function POST(req: Request) {
       "kpis": ["string"],
       "validation_rules": ["string"],
       "feedback": ["string"],
-      "notes": ["string"]
+      "notes": ["string"],
+      "af_prt": "string (Extract the af_prt value if present in the text, otherwise null)"
     }
 
     Rules:

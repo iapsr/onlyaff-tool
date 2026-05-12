@@ -105,13 +105,21 @@ export default function CampaignBriefBuilder() {
     pendingData: ParsedData | null;
   }>({ isOpen: false, missingFields: [], pendingData: null });
 
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    isLimit: boolean;
+  }>({ isOpen: false, message: '', isLimit: false });
+  const [authEmail, setAuthEmail] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
   const [history, setHistory] = useState<CampaignHistoryItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [usage, setUsage] = useState({ count: 0, limit: 3 });
 
   // Fetch usage on mount and after generation
   const fetchUsage = async () => {
-    if (session && (session.user as any).provider === 'linkedin') {
+    if (session) {
       try {
         const res = await fetch('/api/usage');
         const data = await res.json();
@@ -214,6 +222,10 @@ export default function CampaignBriefBuilder() {
       if (!data.payout) missingFields.push("Payout Amount");
       if (!data.payable_event) missingFields.push("Payable Event / Action");
 
+      if (data.mmp && data.mmp.toLowerCase().includes('appsflyer') && !data.af_prt) {
+         missingFields.push("af_prt (Crucial for AppsFlyer validation)");
+      }
+
       if (missingFields.length > 0) {
         setValidationWarning({
            isOpen: true,
@@ -229,7 +241,12 @@ export default function CampaignBriefBuilder() {
       fetchUsage(); // Refresh usage after success
     } catch (error: any) {
       console.error('Error generating brief:', error);
-      alert(`Error: ${error.message}`);
+      const isLimitError = error.message.includes('Limit Reached');
+      setErrorModal({
+        isOpen: true,
+        message: error.message,
+        isLimit: isLimitError
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -836,6 +853,73 @@ export default function CampaignBriefBuilder() {
                       Generate Anyway
                     </button>
                  </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* Dynamic Error / Auth Modal */}
+      {errorModal.isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+           <div className="bg-[#111] border border-[#BEFF00]/20 rounded-3xl shadow-[0_0_60px_-15px_rgba(190,255,0,0.15)] w-full max-w-lg overflow-hidden flex flex-col transform transition-all animate-in zoom-in-95 duration-300">
+              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                 <div className="flex items-center gap-3">
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 shadow-inner ${errorModal.isLimit ? 'bg-[#BEFF00]/20 text-[#BEFF00] border border-[#BEFF00]/30' : 'bg-red-500/20 text-red-500 border border-red-500/30'}`}>
+                     {errorModal.isLimit ? '🔐' : '⚠️'}
+                   </div>
+                   <div>
+                      <h2 className="text-lg font-bold text-white tracking-wide">{errorModal.isLimit ? 'Sign In Required' : 'Processing Error'}</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">{errorModal.isLimit ? 'Unlock unlimited campaign formatting' : 'Something went wrong'}</p>
+                   </div>
+                 </div>
+                 <button onClick={() => setErrorModal({isOpen: false, message: '', isLimit: false})} className="p-2 text-gray-500 hover:text-white transition-colors">
+                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                 </button>
+              </div>
+              <div className="p-6 bg-[#050505]">
+                 <p className="text-sm font-medium text-gray-300 leading-relaxed mb-8 text-center px-4">
+                   {errorModal.message.replace('[Limit Reached]', '')}
+                 </p>
+                 
+                 {errorModal.isLimit && (
+                    <form onSubmit={async (e) => {
+                       e.preventDefault();
+                       setAuthLoading(true);
+                       await signIn("email", { email: authEmail, callbackUrl: "/" });
+                    }} className="space-y-4 max-w-sm mx-auto">
+                       <div className="space-y-1.5">
+                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Email Address</label>
+                         <input 
+                           type="email"
+                           required
+                           value={authEmail}
+                           onChange={(e) => setAuthEmail(e.target.value)}
+                           placeholder="alan.turing@example.com"
+                           className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#BEFF00]/50 transition-all placeholder:text-gray-700"
+                         />
+                       </div>
+                       <button 
+                         type="submit"
+                         disabled={authLoading}
+                         className="w-full py-3 rounded-xl font-bold text-sm text-black bg-[#BEFF00] hover:bg-[#a5e000] transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                       >
+                         {authLoading ? (
+                           <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></span>
+                         ) : 'Send Magic Link'}
+                       </button>
+                    </form>
+                 )}
+                 
+                 {!errorModal.isLimit && (
+                    <div className="flex justify-center">
+                       <button 
+                         onClick={() => setErrorModal({isOpen: false, message: '', isLimit: false})}
+                         className="px-8 py-3 rounded-xl font-bold text-sm text-white bg-white/10 hover:bg-white/20 transition-all active:scale-[0.98]"
+                       >
+                         Dismiss
+                       </button>
+                    </div>
+                 )}
               </div>
            </div>
         </div>
