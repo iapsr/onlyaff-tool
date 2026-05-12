@@ -15,6 +15,7 @@ function SignInContent() {
   const [view, setView] = useState<'user' | 'admin'>('user');
   const [userMode, setUserMode] = useState<'signin' | 'signup'>('signin');
   const [show2FA, setShow2FA] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("admin") === "true") {
