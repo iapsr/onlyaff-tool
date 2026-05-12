@@ -360,7 +360,7 @@ export default function CampaignBriefBuilder() {
   return (
     <div className="flex h-screen bg-[#050505] text-[#ECECEC] font-sans selection:bg-[#BEFF00]/30 overflow-hidden relative">
       
-      {/* Growven Glassmorphism Background Orbs */}
+      {/* Glassmorphism Background Orbs */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#BEFF00]/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-900/10 blur-[130px] pointer-events-none" />
       <div className="absolute top-[30%] left-[50%] w-[30%] h-[30%] rounded-full bg-[#BEFF00]/5 blur-[100px] pointer-events-none" />
@@ -467,10 +467,6 @@ export default function CampaignBriefBuilder() {
             <div className="text-sm text-gray-200 font-semibold tracking-wide">
               Campaign Brief Formatter
             </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Powered By</span>
-             <span className="text-sm font-black text-[#BEFF00] tracking-wide">Growven</span>
           </div>
         </header>
 
