@@ -16,7 +16,6 @@ export default function DearBot() {
   const [isThinking, setIsThinking] = useState(false);
   
   const [isHovered, setIsHovered] = useState(false);
-  const [animation, setAnimation] = useState('Run');
   const [orbit, setOrbit] = useState('90deg 85deg 105%');
   
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
@@ -37,10 +36,8 @@ export default function DearBot() {
   // Sync state to animations/orbit
   useEffect(() => {
     if (isWalking) {
-      setAnimation('Run');
-      setOrbit('90deg 85deg 105%');
-    } else {
-      setAnimation('Idle');
+      // Standard models face forward natively. Orbit 270deg views left profile, which flips via CSS rotateY to patrol leftwards perfectly.
+      setOrbit('270deg 85deg 105%');
     }
   }, [isWalking]);
 
@@ -52,7 +49,7 @@ export default function DearBot() {
       setIsMouseIdle(false);
       setCursorPos({ x: e.clientX, y: e.clientY });
       
-      // Update cursor tracking orientation centered on 180deg (Front Face)
+      // Update cursor tracking orientation centered on 0deg (Front Face for standard models)
       if (characterRef.current) {
         const rect = characterRef.current.getBoundingClientRect();
         const charX = rect.left + rect.width / 2;
@@ -61,9 +58,9 @@ export default function DearBot() {
         const deltaX = e.clientX - charX;
         const deltaY = e.clientY - charY;
         
-        // Base orbit 180deg looks at front face. Adding deltaX orbits towards left arm (making model look right).
+        // Base orbit 0deg looks at front face. Subtracting deltaX orbits towards left cheek (making model look right).
         // Subtracting deltaY orbits camera higher (making model look down at cursor).
-        const rotationY = 180 + (deltaX / window.innerWidth) * 70;
+        const rotationY = 0 - (deltaX / window.innerWidth) * 70;
         const pitch = 85 - (deltaY / window.innerHeight) * 15;
 
         setOrbit(`${rotationY}deg ${pitch}deg 105%`);
@@ -269,9 +266,8 @@ export default function DearBot() {
               <div className={`w-full h-full ${isWalking ? 'animate-patrol-turn' : ''}`}>
                 {/* @ts-ignore */}
                 <model-viewer
-                  src="https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb"
+                  src="/dear-avatar.glb"
                   autoplay
-                  animation-name={animation}
                   shadow-intensity="2"
                   camera-orbit={orbit}
                   camera-target="0m 1.2m 0m"
