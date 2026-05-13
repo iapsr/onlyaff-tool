@@ -52,7 +52,7 @@ export default function DearBot() {
       setIsMouseIdle(false);
       setCursorPos({ x: e.clientX, y: e.clientY });
       
-      // Update cursor tracking orientation centered on 0deg (Front Face)
+      // Update cursor tracking orientation centered on 180deg (Front Face)
       if (characterRef.current) {
         const rect = characterRef.current.getBoundingClientRect();
         const charX = rect.left + rect.width / 2;
@@ -61,9 +61,10 @@ export default function DearBot() {
         const deltaX = e.clientX - charX;
         const deltaY = e.clientY - charY;
         
-        // Directly map X offset to orbit: moving right (deltaX>0) means negative orbit.
-        const rotationY = 0 - (deltaX / window.innerWidth) * 70;
-        const pitch = 85 + (deltaY / window.innerHeight) * 15;
+        // Base orbit 180deg looks at front face. Adding deltaX orbits towards left arm (making model look right).
+        // Subtracting deltaY orbits camera higher (making model look down at cursor).
+        const rotationY = 180 + (deltaX / window.innerWidth) * 70;
+        const pitch = 85 - (deltaY / window.innerHeight) * 15;
 
         setOrbit(`${rotationY}deg ${pitch}deg 105%`);
       }
