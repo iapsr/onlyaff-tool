@@ -193,7 +193,9 @@ export default function DearBot() {
           >
             {/* Auto-popup hover bubble */}
             {!isOpen && isHovered && (
-              <div className="absolute bottom-[440px] bg-[#1E1E1E] border border-[#333333] text-white p-5 rounded-[24px] shadow-2xl w-max max-w-[320px] animate-in zoom-in duration-300 z-10 cursor-none">
+              <div className="absolute bottom-full mb-4 bg-[#1E1E1E] border border-[#333333] text-white p-5 rounded-[24px] shadow-2xl w-max max-w-[320px] animate-in zoom-in duration-300 z-10 cursor-none">
+                {/* Downward pointing speech triangle */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#1E1E1E]" />
                 <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
                 <p className="text-[14px] leading-relaxed">
                   Hi My Name is <span className="font-black text-[#BEFF00]">Dear</span>, if you are AdTech professional than I am your assistant?
@@ -204,8 +206,8 @@ export default function DearBot() {
             {/* Floating Chat Interface container (pointer-events-none wrapper prevents blocking exit clicks) */}
             {isOpen && (
               <div 
-                className="absolute bottom-[460px] right-0 w-[90vw] max-w-[600px] flex flex-col z-20 pointer-events-none cursor-auto"
-                style={{ maxHeight: 'calc(100vh - 480px)' }}
+                className="absolute bottom-full mb-4 right-[-20px] w-[90vw] max-w-[550px] flex flex-col z-20 pointer-events-none cursor-auto"
+                style={{ maxHeight: 'calc(100vh - 460px)' }}
               >
                  
                  {/* Chat History Container */}
@@ -262,7 +264,7 @@ export default function DearBot() {
             )}
 
             {/* 3D BGMI-style Avatar Wrapper for Hover Scaling */}
-            <div className={`relative w-[320px] h-[480px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'scale-110 -translate-y-4' : 'scale-100 translate-y-0'}`}>
+            <div className={`relative w-[280px] h-[400px] drop-shadow-[0_40px_40px_rgba(0,0,0,0.9)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? 'scale-110 -translate-y-4' : 'scale-100 translate-y-0'}`}>
               {/* Inner container specifically decoupled. Stripping the patrol-turn class when paused prevents CSS rotateY mirroring of mouse tracking */}
               <div className={`w-full h-full ${isWalking ? 'animate-patrol-turn' : ''}`}>
                 {/* @ts-ignore */}
