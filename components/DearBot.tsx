@@ -60,8 +60,9 @@ export default function DearBot() {
         
         // Base orbit 0deg looks at front face. Subtracting deltaX orbits towards left cheek (making model look right).
         // Subtracting deltaY orbits camera higher (making model look down at cursor).
-        const rotationY = 0 - (deltaX / window.innerWidth) * 70;
-        const pitch = 85 - (deltaY / window.innerHeight) * 15;
+        // Optimized mapping coefficients for highly responsive and accurate real-world eye contact with Nathan's custom mesh.
+        const rotationY = 0 - (deltaX / window.innerWidth) * 55;
+        const pitch = 85 - (deltaY / window.innerHeight) * 12;
 
         setOrbit(`${rotationY}deg ${pitch}deg 105%`);
       }
@@ -181,7 +182,7 @@ export default function DearBot() {
         {/* Walking Avatar Stage - Anchored to right side */}
         <div 
           className={`absolute bottom-0 animate-patrol-x ${isWalking ? '' : 'animation-pause'}`}
-          style={{ right: '5%' }}
+          style={{ right: '2%' }}
         >
           <div 
             ref={characterRef}
@@ -192,7 +193,7 @@ export default function DearBot() {
           >
             {/* Auto-popup hover bubble */}
             {!isOpen && isHovered && (
-              <div className="absolute -top-4 bg-[#1E1E1E] border border-[#333333] text-white p-5 rounded-[24px] shadow-2xl w-max max-w-[320px] animate-in zoom-in duration-300 z-10 cursor-none">
+              <div className="absolute -top-12 bg-[#1E1E1E] border border-[#333333] text-white p-5 rounded-[24px] shadow-2xl w-max max-w-[320px] animate-in zoom-in duration-300 z-10 cursor-none">
                 <span className="font-bold block mb-2 text-[#BEFF00] text-[11px] tracking-widest uppercase">DEAR</span>
                 <p className="text-[14px] leading-relaxed">
                   Hi My Name is <span className="font-black text-[#BEFF00]">Dear</span>, if you are AdTech professional than I am your assistant?
@@ -268,6 +269,7 @@ export default function DearBot() {
                 <model-viewer
                   src="/dear-avatar.glb"
                   autoplay
+                  animation-name={isWalking ? 'Take 001' : 'none'}
                   shadow-intensity="2"
                   camera-orbit={orbit}
                   camera-target="0m 1.2m 0m"
@@ -284,11 +286,11 @@ export default function DearBot() {
 
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes patrol-x {
-            0% { transform: translateX(5vw); }
-            45% { transform: translateX(-85vw); }
-            50% { transform: translateX(-85vw); }
-            95% { transform: translateX(5vw); }
-            100% { transform: translateX(5vw); }
+            0% { transform: translateX(0px); }
+            45% { transform: translateX(calc(-100vw + 420px)); }
+            50% { transform: translateX(calc(-100vw + 420px)); }
+            95% { transform: translateX(0px); }
+            100% { transform: translateX(0px); }
           }
           @keyframes patrol-turn {
             0% { transform: rotateY(180deg); }
@@ -298,10 +300,10 @@ export default function DearBot() {
             100% { transform: rotateY(180deg); }
           }
           .animate-patrol-x {
-            animation: patrol-x 30s ease-in-out infinite;
+            animation: patrol-x 36s ease-in-out infinite;
           }
           .animate-patrol-turn {
-            animation: patrol-turn 30s ease-in-out infinite;
+            animation: patrol-turn 36s ease-in-out infinite;
           }
           .animation-pause {
             animation-play-state: paused !important;
